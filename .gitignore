@@ -38,5 +38,5 @@ Saved/
 # StarterContent (용량 크고 팀 작업 불필요)
 Content/StarterContent/
 
-# Fab 마켓플레이스 에셋 (개인 라이선스, 팀 공유 불가)
-Content/_Fab/EasyComboBuffering/
+# Fab 마켓플레이스 에셋 전체 (개인 라이선스, 팀 공유 불가 — 각자 로컬 다운로드)
+Content/_Fab/
