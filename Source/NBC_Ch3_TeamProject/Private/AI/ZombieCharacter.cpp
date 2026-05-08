@@ -15,13 +15,13 @@ AZombieCharacter::AZombieCharacter()
 	{
 		MoveComp->MaxWalkSpeed = 50.f;
 
-		// ȸ�� �ӵ� (Yaw) ���� - �Ҷ� ����� ���� ����
-		MoveComp->RotationRate = FRotator(0.0f, 180.0f, 0.0f); // ��ġ�� �������� ȸ���� �ε巯����
-		// �̵� �������� �ڵ� ȸ�� ����
+		// 회전 속도 (Yaw) 조절 - 뚝뚝 끊기는 현상 방지
+		MoveComp->RotationRate = FRotator(0.0f, 180.0f, 0.0f); // 수치가 낮을수록 회전이 부드러워짐
+		// 이동 방향으로 자동 회전 설정
 		MoveComp->bOrientRotationToMovement = true;
-		// ��Ʈ�ѷ� ȸ�� ��� �� �� (ĳ���Ͱ� �� ���ư��� �� ����)
+		// 컨트롤러 회전 사용 안 함 (캐릭터가 휙 돌아가는 것 방지)
 		bUseControllerRotationYaw = false;
-		// ���� ȸ��(RVO Avoidance) Ȱ��ȭ - ���񳢸� ��ġ�� ���� ����
+		// 군중 회피(RVO Avoidance) 활성화 - 좀비끼리 겹치는 현상 방지
 		MoveComp->bUseRVOAvoidance = true;
 		MoveComp->AvoidanceWeight = 0.3f;
 	}

@@ -25,7 +25,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	{
 		ZombieAIController->SetFocus(PlayerCharacter);
 
-		// ��Ÿ�� ���
+		// 몽타주 재생
 		UAnimInstance* AnimInstance = ZombieCharacter->GetMesh()->GetAnimInstance();
 		if (AnimInstance && ZombieCharacter->AttackMontage.Num() > 0)
 		{
