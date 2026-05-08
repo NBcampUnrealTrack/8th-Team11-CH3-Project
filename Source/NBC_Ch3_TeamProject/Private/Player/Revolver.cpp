@@ -9,3 +9,4 @@ ARevolver::ARevolver()
 	FireRate = 1.0f;
 	MaxBulletCount = 6;
 }
+

@@ -34,6 +34,7 @@ void ARifle::Fire()
 {
 	if (!bIsFire) return;
 	if (CurrentBulletCount <= 0) return;
+	if (bIsOverHeat) return;
 	
 	FVector Start = GetActorLocation();
 	
@@ -72,6 +73,10 @@ void ARifle::Fire()
 	CurrentSpread = FMath::Min(CurrentSpread + SpreadIncrease, MaxSpread);
 	
 	CurrentBulletCount--;
+	if (CurrentBulletCount <= 0)
+	{
+		Reload();
+	}
 	bIsFire = false;
 	GetWorld()->GetTimerManager().SetTimer(
 		FireTimer,
