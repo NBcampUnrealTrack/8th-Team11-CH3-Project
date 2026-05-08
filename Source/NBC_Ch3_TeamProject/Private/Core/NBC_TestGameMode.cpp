@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "NBC_TestGameMode.h"
+#include "Core/NBC_TestGameMode.h"
 #include "UObject/ConstructorHelpers.h"
 
 ANBC_TestGameMode::ANBC_TestGameMode()

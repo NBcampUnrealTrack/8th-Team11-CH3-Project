@@ -1,8 +1,8 @@
-#include "WeaponComponent.h"
+#include "Combat/WeaponComponent.h"
 
-#include "CombatTypes.h"        // ECC_Weapon
-#include "HealthComponent.h"    // 적중 시 ApplyDamage 위임
-#include "WeaponConfig.h"
+#include "Combat/CombatTypes.h"        // ECC_Weapon
+#include "Combat/HealthComponent.h"    // 적중 시 ApplyDamage 위임
+#include "Combat/WeaponConfig.h"
 
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"

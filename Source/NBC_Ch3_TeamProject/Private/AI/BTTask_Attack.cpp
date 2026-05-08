@@ -1,6 +1,6 @@
-#include "BTTask_Attack.h"
-#include "ZombieCharacter.h"
-#include "ZombieAIController.h"
+#include "AI/BTTask_Attack.h"
+#include "AI/ZombieCharacter.h"
+#include "AI/ZombieAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -25,7 +25,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	{
 		ZombieAIController->SetFocus(PlayerCharacter);
 
-		// ¸ùÅ¸ÁÖ Àç»ý
+		// ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½
 		UAnimInstance* AnimInstance = ZombieCharacter->GetMesh()->GetAnimInstance();
 		if (AnimInstance && ZombieCharacter->AttackMontage.Num() > 0)
 		{
