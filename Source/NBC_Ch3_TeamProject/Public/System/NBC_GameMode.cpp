@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "NBC_Ch3_TeamProject/System/NBC_GameMode.h"
+#include "NBC_Ch3_TeamProject/Public/System/NBC_GameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 ANBC_GameMode::ANBC_GameMode()

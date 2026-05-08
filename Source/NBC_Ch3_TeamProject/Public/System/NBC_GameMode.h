@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
-#include "NBC_Ch3_TeamProject/System/NBC_GameState.h"
+#include "NBC_Ch3_TeamProject/Public/System/NBC_GameState.h"
 #include "NBC_GameMode.generated.h"
 
 /**
