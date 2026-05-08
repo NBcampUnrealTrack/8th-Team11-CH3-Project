@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -14,17 +14,17 @@ class NBC_CH3_TEAMPROJECT_API AZombieCharacter : public ACharacter
 public:
 	AZombieCharacter();
 
-	// °ø°İ ¾Ö´Ï¸ŞÀÌ¼Ç ¸ùÅ¸ÁÖµéÀ» ´ã´Â ¹è¿­
+	// ê³µê²© ì• ë‹ˆë©”ì´ì…˜ ëª½íƒ€ì£¼ë“¤ì„ ë‹´ëŠ” ë°°ì—´
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationMontage")
 	TArray<UAnimMontage*> AttackMontage;
-	// »ç¸Á ¾Ö´Ï¸ŞÀÌ¼Ç ¸ùÅ¸ÁÖµéÀ» ´ã´Â ¹è¿­
+	// ì‚¬ë§ ì• ë‹ˆë©”ì´ì…˜ ëª½íƒ€ì£¼ë“¤ì„ ë‹´ëŠ” ë°°ì—´
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationMontage")
 	TArray<UAnimMontage*> DeathMontage;
 
-	// HP¿Í TakeDamage
+	// HPì™€ TakeDamage
 	float MaxHP = 100.f;
 	float CurrentHP = 100.f;
-	// GameplayStatics::ApplyDamage¿Í °°Àº ÆÄÀÌÇÁ¶óÀÎ
+	// GameplayStatics::ApplyDamageì™€ ê°™ì€ íŒŒì´í”„ë¼ì¸
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	//void OnDeath();

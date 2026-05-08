@@ -1,4 +1,4 @@
-#include "AI/BTTask_Move.h"
+﻿#include "AI/BTTask_Move.h"
 #include "AI/ZombieAIController.h"
 #include "GameFramework/Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -25,6 +25,7 @@ EBTNodeResult::Type UBTTask_Move::ExecuteTask(UBehaviorTreeComponent& OwnerComp,
 	}
 
 	ZombieAIController->MoveToActor(PlayerCharacter, AcceptanceRadius);
+	UE_LOG(LogTemp, Warning, TEXT("MoveToActor"));
 
 	return EBTNodeResult::Succeeded;
 }
