@@ -19,6 +19,10 @@ ABaseWeapon::ABaseWeapon()
 	Damage = 10.0f;
 	FireRate = 0.2f;
 	MaxBulletCount = 30;
+	MaxReloadCount = 3;
+	CurrentReloadCount = 0;
+	bIsOverHeat = false;
+	OverheatCooldown = 10.0f;
 }
 
 void ABaseWeapon::BeginPlay()
@@ -29,8 +33,13 @@ void ABaseWeapon::BeginPlay()
 
 void ABaseWeapon::Fire()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Fire called! bCanFire: %d, Bullets: %d"), 
+		bIsFire, CurrentBulletCount);
+	
 	if (!bIsFire) return;
 	if (CurrentBulletCount <= 0) return;
+	if (bIsOverHeat) return;
+	
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Fire");
 	
 	//발사위치
@@ -68,6 +77,14 @@ void ABaseWeapon::Fire()
 		this,
 		&ABaseWeapon::ResetFireCooldown,
 		FireRate);
+}
+
+void ABaseWeapon::Reload()
+{
+}
+
+void ABaseWeapon::OnOverHeatEnd()
+{
 }
 
 void ABaseWeapon::ResetFireCooldown()

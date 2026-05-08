@@ -132,6 +132,67 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 					this,
 					&APlayerCharacter::StopSprint);
 			}
+			// Fire - Started로 시작, Completed로 정지
+			if (PlayerController->FireAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->FireAction,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::StartFire);
+    
+				EnhancedInput->BindAction(
+					PlayerController->FireAction,
+					ETriggerEvent::Completed,
+					this,
+					&APlayerCharacter::StopFire);
+			}
+
+			// 무기 교체 - Started (한 번만)
+			if (PlayerController->NextWeaponAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->NextWeaponAction,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::SwitchToNextWeapon);
+			}
+
+			if (PlayerController->PrevWeaponAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->PrevWeaponAction,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::SwitchToPrevWeapon);
+			}
+
+			if (PlayerController->Weapon1Action)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->Weapon1Action,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::SelectWeapon1);
+			}
+
+			if (PlayerController->Weapon2Action)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->Weapon2Action,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::SelectWeapon2);
+			}
+
+			if (PlayerController->Weapon3Action)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->Weapon3Action,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::SelectWeapon3);
+			}
 		}
 	}
 }
@@ -195,6 +256,7 @@ void APlayerCharacter::StopSprint(const FInputActionValue& value)
 
 void APlayerCharacter::StartFire()
 {
+	UE_LOG(LogTemp, Warning, TEXT("StartFire called!")); 
 	bIsFiring = true;
 	
 	if (WeaponInventory.IsValidIndex(CurrentWeaponIndex))
@@ -205,6 +267,7 @@ void APlayerCharacter::StartFire()
 
 void APlayerCharacter::StopFire()
 {
+	UE_LOG(LogTemp, Warning, TEXT("StopFire called!")); 
 	bIsFiring = false;
 }
 
