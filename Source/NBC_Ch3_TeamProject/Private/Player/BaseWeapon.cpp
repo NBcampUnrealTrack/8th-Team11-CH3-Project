@@ -93,7 +93,7 @@ void ABaseWeapon::Reload()
 	if (CurrentReloadCount >= MaxReloadCount)
 	{
 		// 과열 진입!
-		bIsOverheated = true;
+		bIsOverHeat = true;
         
 		UE_LOG(LogTemp, Warning, TEXT("OVERHEATED! %f seconds cooldown"), OverheatCooldown);
         
@@ -121,7 +121,7 @@ void ABaseWeapon::Reload()
 
 void ABaseWeapon::OnOverHeatEnd()
 {
-	bIsOverheated = false;
+	bIsOverHeat = false;
 	CurrentReloadCount = 0;
 	CurrentBulletCount = MaxBulletCount;
     
