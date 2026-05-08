@@ -1,5 +1,5 @@
-#include "BTTask_Move.h"
-#include "ZombieAIController.h"
+#include "AI/BTTask_Move.h"
+#include "AI/ZombieAIController.h"
 #include "GameFramework/Character.h"
 #include "BehaviorTree/BlackboardComponent.h"
 

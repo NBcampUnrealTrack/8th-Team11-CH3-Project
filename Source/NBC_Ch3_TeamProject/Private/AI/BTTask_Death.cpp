@@ -1,6 +1,6 @@
-#include "BTTask_Death.h"
-#include "ZombieCharacter.h"
-#include "ZombieAIController.h"
+#include "AI/BTTask_Death.h"
+#include "AI/ZombieCharacter.h"
+#include "AI/ZombieAIController.h"
 
 UBTTask_Death::UBTTask_Death()
 {
