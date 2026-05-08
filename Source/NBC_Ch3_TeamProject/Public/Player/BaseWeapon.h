@@ -45,11 +45,24 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|State")
 	bool bIsFire = true;
 	
+	//과열
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|OverHeat")
+	int32 MaxReloadCount;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|OverHeat")
+	int32 CurrentReloadCount;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|OverHeat")
+	bool bIsOverHeat;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|OverHeat")
+	float OverheatCooldown;
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void Fire();
 	
+	void Reload();
+	void OnOverHeatEnd();
+	
 	FTimerHandle FireTimer;
+	FTimerHandle OverheatTimer;
 	
 	void ResetFireCooldown();
 };
