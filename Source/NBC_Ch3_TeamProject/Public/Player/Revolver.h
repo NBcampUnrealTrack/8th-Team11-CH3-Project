@@ -16,4 +16,5 @@ class NBC_CH3_TEAMPROJECT_API ARevolver : public ABaseWeapon
 	
 public:
 	ARevolver();
+	
 };
