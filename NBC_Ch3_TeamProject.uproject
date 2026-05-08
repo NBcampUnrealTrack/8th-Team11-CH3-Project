@@ -21,11 +21,6 @@
 			"TargetAllowList": [
 				"Editor"
 			]
-		},
-		{
-			"Name": "Figma2UMG",
-			"Enabled": true,
-			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/d1c6a5ba1f814d4b939c06a1c67a0dc2"
 		}
 	]
 }
