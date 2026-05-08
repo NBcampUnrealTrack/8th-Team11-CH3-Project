@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Player/Shotgun.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -17,6 +14,7 @@ void AShotgun::Fire()
 {
 	if (!bIsFire) return;
 	if (CurrentBulletCount <= 0) return;
+	if (bIsOverHeat) return;
 	
 	FVector Start = GetActorLocation();
 	FVector BaseDirection = GetActorForwardVector();
@@ -50,6 +48,10 @@ void AShotgun::Fire()
 		}
 	}
 	CurrentBulletCount--;
+	if (CurrentBulletCount <= 0)
+	{
+		Reload();
+	}
 	bIsFire = false;
 	GetWorld()->GetTimerManager().SetTimer(
 		FireTimer, 

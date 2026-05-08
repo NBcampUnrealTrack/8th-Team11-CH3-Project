@@ -19,6 +19,7 @@ ABaseWeapon::ABaseWeapon()
 	Damage = 10.0f;
 	FireRate = 0.2f;
 	MaxBulletCount = 30;
+	
 	MaxReloadCount = 3;
 	CurrentReloadCount = 0;
 	bIsOverHeat = false;
@@ -70,6 +71,11 @@ void ABaseWeapon::Fire()
 	}
 	
 	CurrentBulletCount--;
+	if (CurrentBulletCount <= 0)
+	{
+		Reload();
+	}
+	
 	bIsFire = false;
 	
 	GetWorld()->GetTimerManager().SetTimer(
@@ -81,10 +87,52 @@ void ABaseWeapon::Fire()
 
 void ABaseWeapon::Reload()
 {
+	CurrentBulletCount = MaxBulletCount;
+	UE_LOG(LogTemp, Warning, TEXT("Reload! Count: %d / %d"), 
+		CurrentReloadCount, MaxReloadCount);
+	if (CurrentReloadCount >= MaxReloadCount)
+	{
+		// 과열 진입!
+		bIsOverheated = true;
+        
+		UE_LOG(LogTemp, Warning, TEXT("OVERHEATED! %f seconds cooldown"), OverheatCooldown);
+        
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1, 3.0f, FColor::Red,
+				FString::Printf(TEXT("OVERHEATED! %.0fs cooldown"), OverheatCooldown));
+		}
+        
+		// 10초 후 과열 해제
+		GetWorld()->GetTimerManager().SetTimer(
+			OverheatTimer, this,
+			&ABaseWeapon::OnOverHeatEnd,
+			OverheatCooldown, false);
+        
+		return;
+	}
+	
+	CurrentBulletCount = MaxBulletCount;
+    
+	UE_LOG(LogTemp, Warning, TEXT("Ammo refilled: %d"), CurrentBulletCount);
+	
 }
 
 void ABaseWeapon::OnOverHeatEnd()
 {
+	bIsOverheated = false;
+	CurrentReloadCount = 0;
+	CurrentBulletCount = MaxBulletCount;
+    
+	UE_LOG(LogTemp, Warning, TEXT("Overheat ended! Ready to fire"));
+    
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1, 2.0f, FColor::Green,
+			TEXT("Weapon cooled down!"));
+	}
 }
 
 void ABaseWeapon::ResetFireCooldown()
