@@ -40,7 +40,7 @@ public:
 	float SprintSpeed;
 
 	//무기
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TArray<TSubclassOf<ABaseWeapon>> StartWeapon;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TArray<ABaseWeapon*> WeaponInventory;
