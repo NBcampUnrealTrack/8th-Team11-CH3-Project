@@ -27,6 +27,10 @@ APlayerCharacter::APlayerCharacter()
 	SprintSpeed = NormalSpeed * SprintMultiplier;
 	
 	bIsFiring = false;
+	bIsAiming = false;
+	DefaultFOV = 90.0f;
+	AimFOV = 45.0f;
+	AimSpeed = 10.0f;
 	
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
@@ -75,6 +79,14 @@ void APlayerCharacter::Tick(float DeltaTime)
 	if (bIsFiring && WeaponInventory.IsValidIndex(CurrentWeaponIndex))
 	{
 		WeaponInventory[CurrentWeaponIndex]->Fire();
+	}
+	if (Camera)
+	{
+		float TargetFOV = bIsAiming ? AimFOV : DefaultFOV;
+		float CurrentFOV = Camera->FieldOfView;
+		
+		float NewFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaTime, AimSpeed);
+		Camera->SetFieldOfView(NewFOV);
 	}
 }
 
@@ -192,6 +204,21 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 					ETriggerEvent::Started,
 					this,
 					&APlayerCharacter::SelectWeapon3);
+			}
+			
+			if (PlayerController->AimAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->AimAction,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::StartAim);
+    
+				EnhancedInput->BindAction(
+					PlayerController->AimAction,
+					ETriggerEvent::Completed,
+					this,
+					&APlayerCharacter::StopAim);
 			}
 		}
 	}
@@ -366,4 +393,16 @@ void APlayerCharacter::SelectWeapon2()
 void APlayerCharacter::SelectWeapon3()
 {
 	SwitchWeapon(2);
+}
+
+void APlayerCharacter::StartAim()
+{
+	bIsAiming = true;
+	UE_LOG(LogTemp, Warning, TEXT("Aiming!"));
+}
+
+void APlayerCharacter::StopAim()
+{
+	bIsAiming = false;
+	UE_LOG(LogTemp, Warning, TEXT("Aiming End!"));
 }

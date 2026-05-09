@@ -3,6 +3,7 @@
 
 #include "Player/BaseWeapon.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/PlayerCharacter.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -24,6 +25,7 @@ ABaseWeapon::ABaseWeapon()
 	CurrentReloadCount = 0;
 	bIsOverHeat = false;
 	OverheatCooldown = 10.0f;
+	AimingSpread = 0.3f;
 }
 
 void ABaseWeapon::BeginPlay()
