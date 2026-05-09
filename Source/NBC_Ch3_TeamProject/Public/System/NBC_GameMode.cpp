@@ -26,6 +26,9 @@ void ANBC_GameMode::OnMonsterKilled()
 
 	++CurrentKillCount;
 
+	int32 Score = FMath::RoundToInt(ScorePerKill * GS->DifficultyMultiplier);
+	GS->TotalScore += Score;
+
 	UE_LOG(LogTemp, Log, TEXT("Monster Killed: %d / %d"), CurrentKillCount, TargetKillCount);
 
 	if (CurrentKillCount >= TargetKillCount)

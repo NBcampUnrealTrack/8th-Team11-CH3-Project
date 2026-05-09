@@ -40,4 +40,7 @@ protected:
 	// 클리어 조건 웨이브 수 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GameRules")
 	int32 MaxWaves;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Score")
+	int32 ScorePerKill = 100;
 };
