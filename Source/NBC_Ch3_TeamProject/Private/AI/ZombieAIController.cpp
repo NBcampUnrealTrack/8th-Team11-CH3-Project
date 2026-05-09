@@ -40,7 +40,6 @@ void AZombieAIController::Tick(float DeltaSeconds)
 
 	// 블랙보드에 값 저장
 	Blackboard->SetValueAsFloat(BBKeys::DistanceToPlayer, Distance);
-	Blackboard->SetValueAsFloat(BBKeys::CurrentHP, ZombieCharacter->CurrentHP);
 	Blackboard->SetValueAsBool(BBKeys::bIsInSight, false);
 
 	if (Distance <= 150.f)
@@ -75,7 +74,7 @@ void AZombieAIController::OnPossess(APawn* InPawn)
 	// BP 자식 클래스에서 에셋을 할당했는지 확인 후 실행
 	if (BTAsset)
 	{
-		// UseBlackboard는 내부적으로 Blackboard 데이터 에셋을 기반으로 초기화합니다.
+		// UseBlackboard는 내부적으로 Blackboard 데이터 에셋을 기반으로 초기화
 		if (BTAsset->BlackboardAsset)
 		{
 			Blackboard->InitializeBlackboard(*(BTAsset->BlackboardAsset));
@@ -83,7 +82,7 @@ void AZombieAIController::OnPossess(APawn* InPawn)
 		RunBehaviorTree(BTAsset);
 	}
 
-	// BeginPlay()에 넣으면 좀비를 직접 배치할 땐 되지만 스폰할 땐 안된다.
+	// BeginPlay()에 넣으면 좀비를 직접 배치할 땐 되지만 스폰할 땐 안됨(Possess 되기 전에 실행을 해서 BB에 안들어감)
 	// BTTask_MoveAndFaceTarget에서 쓸 BB 오브젝트 변수에 값 넣어줌
 	Blackboard->SetValueAsObject(BBKeys::TargetActor, PlayerCharacter);
 }
