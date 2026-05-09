@@ -23,19 +23,16 @@ void AZombieAIController::BeginPlay()
 	Super::BeginPlay();
 
 	PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	ZombieCharacter = Cast<AZombieCharacter>(GetPawn());
-	// BTTask_MoveAndFaceTarget에서 쓸 BB 오브젝트 변수에 값 넣어줌
-	Blackboard->SetValueAsObject(BBKeys::TargetActor, PlayerCharacter);
 }
 
 void AZombieAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
 	if (!PlayerCharacter || !ZombieCharacter)
 	{
 		return;
 	}
+
 
 	FVector ZombieLocation = ZombieCharacter->GetActorLocation();
 	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
@@ -71,6 +68,10 @@ void AZombieAIController::Tick(float DeltaSeconds)
 void AZombieAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
+
+	// Possess할 때 
+	ZombieCharacter = Cast<AZombieCharacter>(GetPawn());
+	
 	// BP 자식 클래스에서 에셋을 할당했는지 확인 후 실행
 	if (BTAsset)
 	{
@@ -81,6 +82,10 @@ void AZombieAIController::OnPossess(APawn* InPawn)
 		}
 		RunBehaviorTree(BTAsset);
 	}
+
+	// BeginPlay()에 넣으면 좀비를 직접 배치할 땐 되지만 스폰할 땐 안된다.
+	// BTTask_MoveAndFaceTarget에서 쓸 BB 오브젝트 변수에 값 넣어줌
+	Blackboard->SetValueAsObject(BBKeys::TargetActor, PlayerCharacter);
 }
 
 bool AZombieAIController::IsCanAttackSight()
