@@ -53,5 +53,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
 	UInputAction* Weapon3Action;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	UInputAction* AimAction;
+	
 	virtual void BeginPlay() override;
 };

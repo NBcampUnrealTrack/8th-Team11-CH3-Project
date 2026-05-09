@@ -55,6 +55,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|OverHeat")
 	float OverheatCooldown;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Aim")
+	float AimingSpread;
+	
 	UFUNCTION(BlueprintCallable)
 	virtual void Fire();
 	

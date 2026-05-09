@@ -3,6 +3,7 @@
 
 #include "Player/Rifle.h"
 #include "Kismet/GameplayStatics.h"
+#include "Player/PlayerCharacter.h"
 
 ARifle::ARifle()
 {
@@ -36,11 +37,23 @@ void ARifle::Fire()
 	if (CurrentBulletCount <= 0) return;
 	if (bIsOverHeat) return;
 	
+	bool bOwnerAiming = false;
+	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner()))
+	{
+		bOwnerAiming = PlayerCharacter->bIsAiming;
+	}
+	
 	FVector Start = GetActorLocation();
+	
+	float ActualSpread = CurrentSpread;
+	if (bOwnerAiming)
+	{
+		ActualSpread *= AimingSpread;
+	}
 	
 	FVector RandomDir = FMath::VRandCone(
 		GetActorForwardVector(),
-		FMath::DegreesToRadians(CurrentSpread));
+		FMath::DegreesToRadians(ActualSpread));
 	
 	FVector End = Start + (RandomDir * 5000.0f);
 	
@@ -71,6 +84,8 @@ void ARifle::Fire()
 	}
 	
 	CurrentSpread = FMath::Min(CurrentSpread + SpreadIncrease, MaxSpread);
+	
+	
 	
 	CurrentBulletCount--;
 	if (CurrentBulletCount <= 0)
