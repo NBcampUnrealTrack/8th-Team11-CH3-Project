@@ -12,7 +12,6 @@ namespace BBKeys
 	const FName DistanceToPlayer = TEXT("DistanceToPlayer");
 	const FName bIsInSight = TEXT("bIsInSight");
 	const FName TargetActor = TEXT("TargetActor");
-	const FName CurrentHP = TEXT("CurrentHP");
 }
 
 UCLASS()
