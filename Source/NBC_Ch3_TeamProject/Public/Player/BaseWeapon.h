@@ -7,6 +7,7 @@
 #include "BaseWeapon.generated.h"
 
 class USkeletalMeshComponent;
+class UWeaponConfig;
 
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API ABaseWeapon : public AActor
@@ -20,7 +21,12 @@ public:
 	ABaseWeapon();
 	
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
-	USkeletalMeshComponent *WeaponMesh;
+	USkeletalMeshComponent* WeaponMesh;
+	
+	
+	// 무기 스펙 데이터
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	UWeaponConfig* WeaponConfig; 
 
 	//무기 정보
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
