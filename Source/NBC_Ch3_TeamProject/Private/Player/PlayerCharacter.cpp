@@ -5,8 +5,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Combat/WeaponComponent.h"
 #include "Player/PlayerControllerClass.h"
 #include "Player/BaseWeapon.h"
+#include "Player/Rifle.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 APlayerCharacter::APlayerCharacter()
@@ -26,6 +28,8 @@ APlayerCharacter::APlayerCharacter()
 	SprintMultiplier = 1.7f;
 	SprintSpeed = NormalSpeed * SprintMultiplier;
 	
+	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
+	
 	bIsFiring = false;
 	bIsAiming = false;
 	DefaultFOV = 90.0f;
@@ -38,56 +42,98 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	for (TSubclassOf<ABaseWeapon> Weapon : StartWeapon)
-	{
-		if (!Weapon) continue;
-		
-		FActorSpawnParameters SpawnParam;
-		SpawnParam.Owner = this;
-		
-		ABaseWeapon* NewWeapon = GetWorld()->SpawnActor<ABaseWeapon>(
-			Weapon,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			SpawnParam);
-		
-		if (!NewWeapon) continue;
-		
-		NewWeapon->AttachToComponent(
-			GetMesh(),
-			FAttachmentTransformRules::SnapToTargetNotIncludingScale,
-			TEXT("WeaponSocket"));
-		
-		NewWeapon->SetActorHiddenInGame(true);
-		
-		WeaponInventory.Add(NewWeapon);
-	}
-	
+
 	CurrentWeaponIndex = -1;
-	
-	if (WeaponInventory.Num() > 0)
+
+	if (bGiveTestWeaponsOnBeginPlay)
 	{
-		SwitchWeapon(0);
+		for (TSubclassOf<ABaseWeapon> WeaponClass : TestStartWeapon)
+		{
+			AddWeaponToInventory(WeaponClass);
+		}
+
+		if (WeaponInventory.Num() > 0)
+		{
+			SwitchWeapon(0);
+		}
 	}
 }
 
 void APlayerCharacter::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-	
-	if (bIsFiring && WeaponInventory.IsValidIndex(CurrentWeaponIndex))
+    Super::Tick(DeltaTime);
+    
+    // === 발사 처리 ===
+	if (bIsFiring && WeaponComponent)
 	{
-		WeaponInventory[CurrentWeaponIndex]->Fire();
-	}
-	if (Camera)
-	{
-		float TargetFOV = bIsAiming ? AimFOV : DefaultFOV;
-		float CurrentFOV = Camera->FieldOfView;
-		
-		float NewFOV = FMath::FInterpTo(CurrentFOV, TargetFOV, DeltaTime, AimSpeed);
-		Camera->SetFieldOfView(NewFOV);
-	}
+		if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex))
+		{
+			return;
+		}
+
+		ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
+		if (!CurWeapon) return;
+
+		if (CurWeapon->bIsOverHeat) return;
+		if (CurWeapon->CurrentBulletCount <= 0) return;
+
+		FVector MuzzleLocation = GetActorLocation();
+
+		if (CurWeapon->WeaponMesh && CurWeapon->WeaponMesh->DoesSocketExist(TEXT("Muzzle")))
+		{
+			MuzzleLocation = CurWeapon->WeaponMesh->GetSocketLocation(TEXT("Muzzle"));
+		}
+
+		const FRotator AimRotation = GetControlRotation();
+		float SpreadMult = bIsAiming ? 0.3f : 1.0f;
+
+		if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
+		{
+			SpreadMult *= (RifleWeapon->CurrentSpread / RifleWeapon->MinSpread);
+		}
+
+		const bool bFired = WeaponComponent->TryFire(
+			MuzzleLocation,
+			AimRotation,
+			this,
+			SpreadMult
+		);
+
+		if (bFired)
+		{
+			if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
+			{
+				RifleWeapon->CurrentSpread = FMath::Min(
+					RifleWeapon->CurrentSpread + RifleWeapon->SpreadIncrease,
+					RifleWeapon->MaxSpread
+				);
+			}
+
+			CurWeapon->CurrentBulletCount--;
+
+			if (CurWeapon->CurrentBulletCount <= 0)
+			{
+				CurWeapon->Reload();
+			}
+		}
+    }
+    
+    // === 반동 처리 ===
+    if (WeaponComponent)
+    {
+        float PitchDelta, YawDelta;
+        WeaponComponent->TickRecoil(DeltaTime, PitchDelta, YawDelta);
+        AddControllerPitchInput(PitchDelta);
+        AddControllerYawInput(YawDelta);
+    }
+    
+    // === FOV 전환 ===
+    if (Camera)
+    {
+        float TargetFOV = bIsAiming ? AimFOV : DefaultFOV;
+        float NewFOV = FMath::FInterpTo(Camera->FieldOfView, TargetFOV, DeltaTime, AimSpeed);
+        Camera->SetFieldOfView(NewFOV);
+    }
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -285,11 +331,6 @@ void APlayerCharacter::StartFire()
 {
 	UE_LOG(LogTemp, Warning, TEXT("StartFire called!")); 
 	bIsFiring = true;
-	
-	if (WeaponInventory.IsValidIndex(CurrentWeaponIndex))
-	{
-		WeaponInventory[CurrentWeaponIndex]->Fire();
-	}
 }
 
 void APlayerCharacter::StopFire()
@@ -314,6 +355,15 @@ void APlayerCharacter::SwitchWeapon(int32 index)
 	{
 		CurrentWeaponIndex = index;
 		WeaponInventory[index]->SetActorHiddenInGame(false);
+		
+		if (WeaponComponent)
+		{
+			ABaseWeapon* CurrentWeapon = WeaponInventory[CurrentWeaponIndex];
+			if (CurrentWeapon && CurrentWeapon->WeaponConfig)
+			{
+				WeaponComponent->EquipWeapon(CurrentWeapon->WeaponConfig);
+			}
+		}
 		return;
 	}
 	
@@ -374,6 +424,15 @@ void APlayerCharacter::OnSwitchAnimComplete()
 	
 	WeaponInventory[CurrentWeaponIndex]->SetActorHiddenInGame(false);
 	
+	if (WeaponComponent && WeaponInventory.IsValidIndex(CurrentWeaponIndex))
+	{
+		ABaseWeapon* CurrentWeapon = WeaponInventory[CurrentWeaponIndex];
+		if (CurrentWeapon && CurrentWeapon->WeaponConfig)
+		{
+			WeaponComponent->EquipWeapon(CurrentWeapon->WeaponConfig);
+		}
+	}
+	
 	bIsSwitch = false;
 	
 	UE_LOG(LogTemp, Warning, TEXT("Weapon switched to: %d"), CurrentWeaponIndex);
@@ -405,4 +464,30 @@ void APlayerCharacter::StopAim()
 {
 	bIsAiming = false;
 	UE_LOG(LogTemp, Warning, TEXT("Aiming End!"));
+}
+
+bool APlayerCharacter::AddWeaponToInventory(TSubclassOf<ABaseWeapon> WeaponClass)
+{
+	if (!WeaponClass || !GetWorld()) return false;
+	
+	FActorSpawnParameters SpawnParam;
+	SpawnParam.Owner = this;
+	SpawnParam.Instigator = this;
+	
+	ABaseWeapon* NewWeapon = GetWorld()->SpawnActor<ABaseWeapon>(
+		WeaponClass,
+		FVector::ZeroVector,
+		FRotator::ZeroRotator,
+		SpawnParam);
+	
+	if (!NewWeapon) return false;
+	
+	NewWeapon->AttachToComponent(
+		GetMesh(),
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+		TEXT("WeaponSocket"));
+	
+	NewWeapon->SetActorHiddenInGame(true);
+	WeaponInventory.Add(NewWeapon);
+	return true;
 }

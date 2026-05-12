@@ -9,6 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class ABaseWeapon;
+class UWeaponComponent;
 
 struct FInputActionValue;
 
@@ -27,6 +28,8 @@ public:
 	USpringArmComponent* SpringArm;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
 	UCameraComponent* Camera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
+	UWeaponComponent* WeaponComponent;
 
 	float MaxHealth;
 
@@ -40,8 +43,10 @@ public:
 	float SprintSpeed;
 
 	//무기
-	UPROPERTY(EditAnywhere, Category = "Weapon")
-	TArray<TSubclassOf<ABaseWeapon>> StartWeapon;
+	UPROPERTY(EditAnywhere, Category = "Weapon|Text")
+	bool bGiveTestWeaponsOnBeginPlay = true;
+	UPROPERTY(EditAnywhere, Category = "Weapon|Test")
+	TArray<TSubclassOf<ABaseWeapon>> TestStartWeapon;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TArray<ABaseWeapon*> WeaponInventory;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
@@ -114,4 +119,7 @@ public:
 	void StartAim();
 	UFUNCTION()
 	void StopAim();
+	
+	UFUNCTION(BlueprintCallable)
+	bool AddWeaponToInventory(TSubclassOf<ABaseWeapon> WeaponClass);
 };
