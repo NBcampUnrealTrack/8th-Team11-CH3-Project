@@ -2,6 +2,7 @@
 
 #include "Combat/CombatTypes.h"        // ECC_Weapon
 #include "Combat/HealthComponent.h"    // 적중 시 ApplyDamage 위임
+#include "Combat/HitReactComponent.h"
 #include "Combat/WeaponConfig.h"
 
 #include "Engine/World.h"
@@ -143,6 +144,11 @@ void UWeaponComponent::ApplyHitDamage(const FHitResult& Hit, float Damage, AActo
 		{
 			Health->ApplyDamage(Damage);
 			UE_LOG(LogTemp, Warning, TEXT("[Weapon] Hit %s for %.1f"), *HitActor->GetName(), Damage);
+
+			if (UHitReactComponent* HitReact = HitActor->FindComponentByClass<UHitReactComponent>())
+			{
+				HitReact->PlayHitReact(Hit.BoneName, -Hit.ImpactNormal);
+			}
 		}
 		return;
 	}
