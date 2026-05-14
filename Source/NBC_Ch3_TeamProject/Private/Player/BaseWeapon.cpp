@@ -4,6 +4,8 @@
 #include "Player/BaseWeapon.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
+#include "Combat/WeaponComponent.h"
+#include "GameFramework/Controller.h"
 
 // Sets default values
 ABaseWeapon::ABaseWeapon()
@@ -36,32 +38,29 @@ void ABaseWeapon::BeginPlay()
 
 void ABaseWeapon::Fire()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Fire called! bCanFire: %d, Bullets: %d"), 
-		bIsFire, CurrentBulletCount);
-	
+	// 데드 코드 확인 후 본체 주석 — WeaponComponent로 단일화. BP/AnimNotify가 호출하면 아래 위임 경로로 라우팅.
+	/*
 	if (!bIsFire) return;
 	if (CurrentBulletCount <= 0) return;
 	if (bIsOverHeat) return;
-	
+
 	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "Fire");
-	
-	//발사위치
+
 	FVector Start = GetActorLocation();
-	//발사 방향
 	FVector End = Start + (GetActorForwardVector() * 5000.0f);
-	
+
 	FHitResult HitResult;
 	FCollisionQueryParams CollisionParams;
 	CollisionParams.AddIgnoredActor(this);
 	CollisionParams.AddIgnoredActor(GetOwner());
-	
+
 	bool bHit = GetWorld()->LineTraceSingleByChannel(
 		HitResult, Start, End, ECC_Visibility, CollisionParams);
-	
-	DrawDebugLine(GetWorld(), Start, End, 
-	   bHit ? FColor::Red : FColor::Green, 
+
+	DrawDebugLine(GetWorld(), Start, End,
+	   bHit ? FColor::Red : FColor::Green,
 	   false, 1.0f, 0, 1.0f);
-	
+
 	if (bHit && HitResult.GetActor())
 	{
 		UGameplayStatics::ApplyDamage(
@@ -71,16 +70,34 @@ void ABaseWeapon::Fire()
 			this,
 			UDamageType::StaticClass());
 	}
-	
+
 	CurrentBulletCount = FMath::Max(CurrentBulletCount - 1, 0);
-	
+
 	bIsFire = false;
-	
+
 	GetWorld()->GetTimerManager().SetTimer(
 		FireTimer,
 		this,
 		&ABaseWeapon::ResetFireCooldown,
 		FireRate);
+	*/
+
+	AActor* OwnerActor = GetOwner();
+	if (!OwnerActor) return;
+
+	UWeaponComponent* WC = OwnerActor->FindComponentByClass<UWeaponComponent>();
+	if (!WC) return;
+
+	const FVector Muzzle = WeaponMesh && WeaponMesh->DoesSocketExist(TEXT("Muzzle"))
+		? WeaponMesh->GetSocketLocation(TEXT("Muzzle"))
+		: GetActorLocation();
+	AController* Ctrl = OwnerActor->GetInstigatorController();
+	const FRotator Aim = Ctrl ? Ctrl->GetControlRotation() : OwnerActor->GetActorRotation();
+
+	UE_LOG(LogTemp, Warning, TEXT("[BaseWeapon::Fire] BP route -> WeaponComponent::TryFire (Weapon=%s, Owner=%s)"),
+		*GetName(), *OwnerActor->GetName());
+
+	WC->TryFire(Muzzle, Aim, OwnerActor, 1.0f);
 }
 
 void ABaseWeapon::Reload()

@@ -136,6 +136,27 @@ void UWeaponComponent::ApplyHitDamage(const FHitResult& Hit, float Damage, AActo
 	AActor* HitActor = Hit.GetActor();
 	if (!HitActor) { return; }
 
+	// BoneName 폴백 — 캡슐 등 본 정보 없는 컴포넌트에 맞아 BoneName=None일 때 가장 가까운 본 검색.
+	FName ResolvedBone = Hit.BoneName;
+	if (ResolvedBone.IsNone())
+	{
+		if (USkeletalMeshComponent* SkelMesh = HitActor->FindComponentByClass<USkeletalMeshComponent>())
+		{
+			FVector BoneLoc;
+			ResolvedBone = SkelMesh->FindClosestBone_K2(Hit.ImpactPoint, BoneLoc);
+
+			// _End 본은 시각 효과 미미 → 부모 본으로 거슬러 올라감
+			int32 SafetyCounter = 8;
+			while (!ResolvedBone.IsNone() && SafetyCounter-- > 0
+				&& ResolvedBone.ToString().EndsWith(TEXT("_End")))
+			{
+				const FName Parent = SkelMesh->GetParentBone(ResolvedBone);
+				if (Parent.IsNone() || Parent == ResolvedBone) break;
+				ResolvedBone = Parent;
+			}
+		}
+	}
+
 	// HealthComponent를 가진 액터(플레이어/좀비/파괴 가능 오브젝트)는 직접 위임.
 	// BaseCharacter 강결합을 피하기 위해 동적 탐색 방식 사용.
 	if (UHealthComponent* Health = HitActor->FindComponentByClass<UHealthComponent>())
@@ -147,8 +168,10 @@ void UWeaponComponent::ApplyHitDamage(const FHitResult& Hit, float Damage, AActo
 
 			if (UHitReactComponent* HitReact = HitActor->FindComponentByClass<UHitReactComponent>())
 			{
-				HitReact->PlayHitReact(Hit.BoneName, -Hit.ImpactNormal);
+				HitReact->PlayHitReact(ResolvedBone, -Hit.ImpactNormal);
 			}
+
+			ApplyHitStop(HitActor, DamageInstigator);
 		}
 		return;
 	}
@@ -181,4 +204,48 @@ void UWeaponComponent::TickRecoil(float DeltaTime, float& OutPitchDelta, float& 
 		PendingRecoilPitch = FMath::FInterpTo(PendingRecoilPitch, 0.f, DeltaTime, Recover);
 		PendingRecoilYaw   = FMath::FInterpTo(PendingRecoilYaw,   0.f, DeltaTime, Recover);
 	}
+}
+
+void UWeaponComponent::ApplyHitStop(AActor* HitActor, AActor* Instigator)
+{
+	UWorld* World = GetWorld();
+	if (!World || !HitActor) { return; }
+	if (HitStopDuration <= 0.f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[HitStop] SKIP — HitStopDuration=%.3f (<=0)"), HitStopDuration);
+		return;
+	}
+
+	// Pawn의 AIController도 함께 멈춰야 BT 의사결정이 같이 느려짐
+	AController* HitController = nullptr;
+	if (APawn* HitPawn = Cast<APawn>(HitActor))
+	{
+		HitController = HitPawn->GetController();
+	}
+
+	HitActor->CustomTimeDilation = HitStopTimeScale;
+	if (HitController)
+	{
+		HitController->CustomTimeDilation = HitStopTimeScale;
+	}
+	if (Instigator && Instigator != HitActor)
+	{
+		Instigator->CustomTimeDilation = HitStopTimeScale;
+	}
+
+	TWeakObjectPtr<AActor> WeakHit  = HitActor;
+	TWeakObjectPtr<AActor> WeakCtrl = HitController;
+	TWeakObjectPtr<AActor> WeakInst = Instigator;
+
+	FTimerHandle TimerHandle;
+	World->GetTimerManager().SetTimer(
+		TimerHandle,
+		FTimerDelegate::CreateWeakLambda(this, [WeakHit, WeakCtrl, WeakInst]()
+		{
+			if (WeakHit.IsValid())  { WeakHit->CustomTimeDilation  = 1.f; }
+			if (WeakCtrl.IsValid()) { WeakCtrl->CustomTimeDilation = 1.f; }
+			if (WeakInst.IsValid()) { WeakInst->CustomTimeDilation = 1.f; }
+		}),
+		HitStopDuration,
+		false);
 }
