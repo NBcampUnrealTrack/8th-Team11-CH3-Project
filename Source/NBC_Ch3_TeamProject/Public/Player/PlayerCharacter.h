@@ -43,6 +43,8 @@ public:
 	float SprintSpeed;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float CrouchSpeed; // 앉기 스피드
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bIsCrouching;
 
 	//무기
 	UPROPERTY(EditAnywhere, Category = "Weapon|Text")
