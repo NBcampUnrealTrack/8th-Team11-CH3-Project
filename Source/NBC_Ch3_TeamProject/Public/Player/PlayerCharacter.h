@@ -69,6 +69,15 @@ public:
 	float AimFOV;  // 조준 시야
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
 	float AimSpeed; // 조준 속도
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	float DefaultArmLength;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	float AimArmLength;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	FVector AimSocketOffset;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	FVector DefaultSocketOffset;
+
 	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
@@ -95,6 +104,8 @@ public:
 	void StartFire();
 	UFUNCTION()
 	void StopFire();
+	UFUNCTION()
+	void ReloadWeapon();
 	
 	
 	//무기 함수
