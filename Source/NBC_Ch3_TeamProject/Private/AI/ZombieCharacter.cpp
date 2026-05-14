@@ -1,5 +1,6 @@
 #include "AI/ZombieCharacter.h"
 #include "AI/ZombieAIController.h"
+#include "System/NBC_GameMode.h"
 #include "Combat/HealthComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -37,6 +38,17 @@ void AZombieCharacter::BeginPlay()
 
 	HealthComponent->OnHealthChanged.AddDynamic(this, &AZombieCharacter::OnHit);
 	HealthComponent->OnDeath.AddDynamic(this, &AZombieCharacter::OnDeath);
+	if (UWorld* World = GetWorld())
+	{
+		// GameMode 가져오기
+		ANBC_GameMode* MyGM = Cast<ANBC_GameMode>(World->GetAuthGameMode());
+
+		if (MyGM)
+		{
+			HealthComponent->OnDeath.AddDynamic(MyGM, &ANBC_GameMode::OnMonsterKilled);
+		}
+	}
+	
 }
 
 float AZombieCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)

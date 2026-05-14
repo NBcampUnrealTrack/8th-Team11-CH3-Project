@@ -16,8 +16,7 @@ public:
 	AZombieSpawnVolume();
 
 	// 좀비 스폰
-	//ACharacter* SpawnZombie();
-	void SpawnZombie();
+	void SpawnZombie(TSubclassOf<ACharacter> ZombieClass);
 
 protected:
 	// 스폰 액터 컴포넌트
@@ -25,9 +24,7 @@ protected:
 	TObjectPtr<USceneComponent> Scene;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
 	TObjectPtr<UBoxComponent> SpawningBox;
-	// 스폰 데이터 테이블
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spawning")
-	TArray<TObjectPtr<UDataTable>> ZombieDataTable;
+
 
 	FTimerHandle SpawnTimerHandle;
 
