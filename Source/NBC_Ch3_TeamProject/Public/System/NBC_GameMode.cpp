@@ -3,12 +3,16 @@
 
 #include "NBC_Ch3_TeamProject/Public/System/NBC_GameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "AI/WaveSpawnManager.h"
 
 ANBC_GameMode::ANBC_GameMode()
 {
 	TargetKillCount = 30;
 	CurrentKillCount = 0;
 	MaxWaves = 5;
+
+	// WaveSpawnManager 컴포넌트 생성 및 등록
+	WaveSpawnManager = CreateDefaultSubobject<UWaveSpawnManager>(TEXT("WaveSpawnManager"));
 }
 
 void ANBC_GameMode::BeginPlay()
@@ -16,6 +20,9 @@ void ANBC_GameMode::BeginPlay()
 	Super::BeginPlay();
 
 	ChangePhase(EGamePhase::Battle);
+
+	// 테스트용
+	WaveSpawnManager->SpawnZombie();
 }
 
 void ANBC_GameMode::OnMonsterKilled()
