@@ -24,7 +24,7 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 	
-	NormalSpeed = 600.0f;
+	NormalSpeed = 300.0f;
 	SprintMultiplier = 1.7f;
 	SprintSpeed = NormalSpeed * SprintMultiplier;
 	
@@ -39,6 +39,13 @@ APlayerCharacter::APlayerCharacter()
 	AimArmLength = 150.0f;
 	DefaultSocketOffset = FVector(0.0f, 0.0f, 0.0f);
 	AimSocketOffset = FVector(0.0f, 60.0f, 20.0f);
+	
+	
+	CrouchSpeed = 200.0f;
+	
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+	GetCharacterMovement()->CrouchedHalfHeight = 44.0f;
 	
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
@@ -292,6 +299,21 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 					this,
 					&APlayerCharacter::ReloadWeapon);
 			}
+			
+			if (PlayerController->SitAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->SitAction,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::StartCrouch);
+				
+				EnhancedInput->BindAction(
+					PlayerController->SitAction,
+					ETriggerEvent::Completed,
+					this,
+					&APlayerCharacter::StopCrouch);
+			}
 		}
 	}
 }
@@ -361,19 +383,20 @@ void APlayerCharacter::StartFire()
 
 void APlayerCharacter::StopFire()
 {
-	if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex)) return;
-
-	ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
-	if (!CurWeapon) return;
-	
-	if (CurWeapon->bIsOverHeat)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Cannot fire: Weapon overheated"));
-		return;
-	}
-	
 	UE_LOG(LogTemp, Warning, TEXT("StopFire called!")); 
 	bIsFiring = false;
+}
+
+void APlayerCharacter::StartCrouch()
+{
+	Crouch();
+	GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+}
+
+void APlayerCharacter::StopCrouch()
+{
+	UnCrouch();
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
 
 void APlayerCharacter::ReloadWeapon()
@@ -426,6 +449,8 @@ void APlayerCharacter::SwitchWeapon(int32 index)
 		return;
 	}
 	
+	
+	bIsFiring = false;
 	//교체 시작
 	bIsSwitch = true;
 	
@@ -433,7 +458,20 @@ void APlayerCharacter::SwitchWeapon(int32 index)
 	
 	if (SwitchWeaponMontage && GetMesh()->GetAnimInstance())
 	{
-		GetMesh()->GetAnimInstance()->Montage_Play(SwitchWeaponMontage);
+		float Duration = GetMesh()->GetAnimInstance()->Montage_Play(SwitchWeaponMontage);
+		if (Duration > 0.0f)
+		{
+			GetWorldTimerManager().SetTimer(
+				SwitchWeaponTimer,
+				this,
+				&APlayerCharacter::OnSwitchAnimComplete,
+				Duration,
+				false);
+		}
+		else
+		{
+			OnSwitchAnimComplete();
+		}
 	}
 	else
 	{

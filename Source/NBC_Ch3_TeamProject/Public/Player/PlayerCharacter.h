@@ -41,6 +41,8 @@ public:
 	float SprintMultiplier;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float CrouchSpeed; // 앉기 스피드
 
 	//무기
 	UPROPERTY(EditAnywhere, Category = "Weapon|Text")
@@ -57,6 +59,7 @@ public:
 	bool bIsSwitch;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	int32 NextWeaponIndex;
+	FTimerHandle SwitchWeaponTimer;
 	
 	bool bIsFiring;
 	
@@ -104,6 +107,10 @@ public:
 	void StartFire();
 	UFUNCTION()
 	void StopFire();
+	UFUNCTION()
+	void StartCrouch();
+	UFUNCTION()
+	void StopCrouch();
 	UFUNCTION()
 	void ReloadWeapon();
 	
