@@ -39,10 +39,33 @@ void UHitReactComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 void UHitReactComponent::PlayHitReact(FName BoneName, const FVector& ImpulseDir)
 {
-	if (bIsReacting) return;
-	if (!CachedMesh || !BlendWeightCurve) return;
-	if (BoneName.IsNone()) return;
-	if (ExcludedBones.Contains(BoneName)) return;
+	if (!CachedMesh)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[HitReact] SKIP — CachedMesh is NULL"));
+		return;
+	}
+	if (!BlendWeightCurve)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[HitReact] SKIP — BlendWeightCurve is NULL"));
+		return;
+	}
+	if (BoneName.IsNone())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[HitReact] SKIP — BoneName is None"));
+		return;
+	}
+	if (ExcludedBones.Contains(BoneName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[HitReact] SKIP — %s is in ExcludedBones"), *BoneName.ToString());
+		return;
+	}
+
+	// 이전 HitReact 진행 중 다른 본 맞으면 이전 본 즉시 정리 후 새 본으로 재시작 (연사 대응)
+	if (bIsReacting && !CurrentBoneName.IsNone() && CurrentBoneName != BoneName)
+	{
+		CachedMesh->SetAllBodiesBelowPhysicsBlendWeight(CurrentBoneName, 0.f);
+		CachedMesh->SetAllBodiesBelowSimulatePhysics(CurrentBoneName, false);
+	}
 
 	bIsReacting = true;
 	CurrentBoneName = BoneName;

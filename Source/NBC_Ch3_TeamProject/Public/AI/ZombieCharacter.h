@@ -6,6 +6,7 @@
 
 class UAnimMontage;
 class UHealthComponent;
+class UHitReactComponent;
 
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API AZombieCharacter : public ACharacter
@@ -27,6 +28,9 @@ public:
 	// HealthComponent
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent;
+	// HitReactComponent (본 단위 물리 블렌드 피격 반응)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	TObjectPtr<UHitReactComponent> HitReactComponent;
 	
 	// GameplayStatics::ApplyDamage와 같은 파이프라인
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
