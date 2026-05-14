@@ -24,7 +24,7 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 	Camera->bUsePawnControlRotation = false;
 	
-	NormalSpeed = 600.0f;
+	NormalSpeed = 300.0f;
 	SprintMultiplier = 1.7f;
 	SprintSpeed = NormalSpeed * SprintMultiplier;
 	
@@ -35,6 +35,17 @@ APlayerCharacter::APlayerCharacter()
 	DefaultFOV = 90.0f;
 	AimFOV = 45.0f;
 	AimSpeed = 10.0f;
+	DefaultArmLength = 300.0f;
+	AimArmLength = 150.0f;
+	DefaultSocketOffset = FVector(0.0f, 0.0f, 0.0f);
+	AimSocketOffset = FVector(0.0f, 60.0f, 20.0f);
+	
+	
+	CrouchSpeed = 200.0f;
+	
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
+	GetCharacterMovement()->MaxWalkSpeedCrouched = CrouchSpeed;
+	GetCharacterMovement()->CrouchedHalfHeight = 44.0f;
 	
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
@@ -63,7 +74,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
     
-    // === 발사 처리 ===
+    // 발사 처리
 	if (bIsFiring && WeaponComponent)
 	{
 		if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex))
@@ -75,8 +86,13 @@ void APlayerCharacter::Tick(float DeltaTime)
 		if (!CurWeapon) return;
 
 		if (CurWeapon->bIsOverHeat) return;
-		if (CurWeapon->CurrentBulletCount <= 0) return;
 
+		if (CurWeapon->CurrentBulletCount <= 0)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Cannot fire: No ammo"));
+			return;
+		}
+		
 		FVector MuzzleLocation = GetActorLocation();
 
 		if (CurWeapon->WeaponMesh && CurWeapon->WeaponMesh->DoesSocketExist(TEXT("Muzzle")))
@@ -108,17 +124,15 @@ void APlayerCharacter::Tick(float DeltaTime)
 					RifleWeapon->MaxSpread
 				);
 			}
-
-			CurWeapon->CurrentBulletCount--;
-
-			if (CurWeapon->CurrentBulletCount <= 0)
-			{
-				CurWeapon->Reload();
-			}
+			
+			CurWeapon->CurrentBulletCount = FMath::Max(
+				CurWeapon->CurrentBulletCount - 1,
+				0
+			);
 		}
     }
     
-    // === 반동 처리 ===
+    // 반동 처리 
     if (WeaponComponent)
     {
         float PitchDelta, YawDelta;
@@ -127,13 +141,24 @@ void APlayerCharacter::Tick(float DeltaTime)
         AddControllerYawInput(YawDelta);
     }
     
-    // === FOV 전환 ===
+    // FOV 전환 
     if (Camera)
     {
         float TargetFOV = bIsAiming ? AimFOV : DefaultFOV;
         float NewFOV = FMath::FInterpTo(Camera->FieldOfView, TargetFOV, DeltaTime, AimSpeed);
         Camera->SetFieldOfView(NewFOV);
     }
+	if (SpringArm)
+	{
+		float TargetLength = bIsAiming ? AimArmLength : DefaultArmLength;
+		SpringArm->TargetArmLength = FMath::FInterpTo(
+			SpringArm->TargetArmLength, TargetLength, DeltaTime, AimSpeed);
+
+		FVector TargetOffset = bIsAiming ? AimSocketOffset : DefaultSocketOffset;
+		SpringArm->SocketOffset = FMath::VInterpTo(
+			SpringArm->SocketOffset, TargetOffset, DeltaTime, AimSpeed);
+	}
+
 }
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -266,6 +291,29 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 					this,
 					&APlayerCharacter::StopAim);
 			}
+			if (PlayerController->ReloadAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->ReloadAction,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::ReloadWeapon);
+			}
+			
+			if (PlayerController->SitAction)
+			{
+				EnhancedInput->BindAction(
+					PlayerController->SitAction,
+					ETriggerEvent::Started,
+					this,
+					&APlayerCharacter::StartCrouch);
+				
+				EnhancedInput->BindAction(
+					PlayerController->SitAction,
+					ETriggerEvent::Completed,
+					this,
+					&APlayerCharacter::StopCrouch);
+			}
 		}
 	}
 }
@@ -339,6 +387,40 @@ void APlayerCharacter::StopFire()
 	bIsFiring = false;
 }
 
+void APlayerCharacter::StartCrouch()
+{
+	Crouch();
+	GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
+}
+
+void APlayerCharacter::StopCrouch()
+{
+	UnCrouch();
+	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+}
+
+void APlayerCharacter::ReloadWeapon()
+{
+	if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex)) return;
+	
+	ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
+	if (!CurWeapon) return;
+	
+	if (CurWeapon->bIsOverHeat)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot reload: Weapon overheated"));
+		return;
+	}
+	
+	if (CurWeapon->CurrentBulletCount >= CurWeapon->MaxBulletCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Cannot reload: Ammo already full"));
+		return;
+	}
+
+	CurWeapon->Reload();
+}
+
 void APlayerCharacter::SwitchWeapon(int32 index)
 {
 	// 잘못된 인덱스일 때 무시하기
@@ -367,6 +449,8 @@ void APlayerCharacter::SwitchWeapon(int32 index)
 		return;
 	}
 	
+	
+	bIsFiring = false;
 	//교체 시작
 	bIsSwitch = true;
 	
@@ -374,7 +458,20 @@ void APlayerCharacter::SwitchWeapon(int32 index)
 	
 	if (SwitchWeaponMontage && GetMesh()->GetAnimInstance())
 	{
-		GetMesh()->GetAnimInstance()->Montage_Play(SwitchWeaponMontage);
+		float Duration = GetMesh()->GetAnimInstance()->Montage_Play(SwitchWeaponMontage);
+		if (Duration > 0.0f)
+		{
+			GetWorldTimerManager().SetTimer(
+				SwitchWeaponTimer,
+				this,
+				&APlayerCharacter::OnSwitchAnimComplete,
+				Duration,
+				false);
+		}
+		else
+		{
+			OnSwitchAnimComplete();
+		}
 	}
 	else
 	{

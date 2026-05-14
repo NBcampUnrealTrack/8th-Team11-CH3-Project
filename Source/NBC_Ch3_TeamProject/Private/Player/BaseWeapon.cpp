@@ -72,11 +72,7 @@ void ABaseWeapon::Fire()
 			UDamageType::StaticClass());
 	}
 	
-	CurrentBulletCount--;
-	if (CurrentBulletCount <= 0)
-	{
-		Reload();
-	}
+	CurrentBulletCount = FMath::Max(CurrentBulletCount - 1, 0);
 	
 	bIsFire = false;
 	
@@ -89,36 +85,41 @@ void ABaseWeapon::Fire()
 
 void ABaseWeapon::Reload()
 {
-	CurrentBulletCount = MaxBulletCount;
-	UE_LOG(LogTemp, Warning, TEXT("Reload! Count: %d / %d"), 
+	if (bIsOverHeat) return;
+
+	CurrentReloadCount++;
+
+	UE_LOG(LogTemp, Warning, TEXT("Reload! Count: %d / %d"),
 		CurrentReloadCount, MaxReloadCount);
+
 	if (CurrentReloadCount >= MaxReloadCount)
 	{
-		// 과열 진입!
 		bIsOverHeat = true;
-        
+
 		UE_LOG(LogTemp, Warning, TEXT("OVERHEATED! %f seconds cooldown"), OverheatCooldown);
-        
+
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(
-				-1, 3.0f, FColor::Red,
+				-1,
+				3.0f,
+				FColor::Red,
 				FString::Printf(TEXT("OVERHEATED! %.0fs cooldown"), OverheatCooldown));
 		}
-        
-		// 10초 후 과열 해제
+
 		GetWorld()->GetTimerManager().SetTimer(
-			OverheatTimer, this,
+			OverheatTimer,
+			this,
 			&ABaseWeapon::OnOverHeatEnd,
-			OverheatCooldown, false);
-        
+			OverheatCooldown,
+			false);
+
 		return;
 	}
-	
+
 	CurrentBulletCount = MaxBulletCount;
-    
+
 	UE_LOG(LogTemp, Warning, TEXT("Ammo refilled: %d"), CurrentBulletCount);
-	
 }
 
 void ABaseWeapon::OnOverHeatEnd()
