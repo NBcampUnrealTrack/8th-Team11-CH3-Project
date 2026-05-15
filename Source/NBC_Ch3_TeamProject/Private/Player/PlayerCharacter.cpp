@@ -390,12 +390,14 @@ void APlayerCharacter::StopFire()
 void APlayerCharacter::StartCrouch()
 {
 	Crouch();
+	bIsCrouching = true;
 	GetCharacterMovement()->MaxWalkSpeed = CrouchSpeed;
 }
 
 void APlayerCharacter::StopCrouch()
 {
 	UnCrouch();
+	bIsCrouching = false;
 	GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 }
 

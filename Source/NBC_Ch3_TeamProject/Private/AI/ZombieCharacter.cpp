@@ -2,6 +2,8 @@
 #include "AI/ZombieAIController.h"
 #include "System/NBC_GameMode.h"
 #include "Combat/HealthComponent.h"
+#include "Combat/HitReactComponent.h"
+#include "Combat/CombatTypes.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -11,9 +13,29 @@ AZombieCharacter::AZombieCharacter()
 	PrimaryActorTick.bCanEverTick = false;
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	HitReactComponent = CreateDefaultSubobject<UHitReactComponent>(TEXT("HitReactComponent"));
 
 	GetMesh()->AddRelativeLocation(FVector(0.f, 0.f, -90.f));
 	GetMesh()->AddRelativeRotation(FRotator(0.f, -90.f, 0.f));
+
+	// Mesh 콜리전 — 라인트레이스로 본 정보 받고 물리 시뮬레이션 가능하도록 Query and Physics
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	MeshComp->SetCollisionObjectType(ECC_Pawn);
+	MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	MeshComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+	MeshComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
+	MeshComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	MeshComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+	MeshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
+	MeshComp->SetCollisionResponseToChannel(ECC_Weapon, ECR_Block);
+	MeshComp->SetGenerateOverlapEvents(true);
+
+	// Capsule은 라인트레이스 무시 — Mesh가 본 단위로 받아야 HitReact가 본별로 동작
+	UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+	CapsuleComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	CapsuleComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	CapsuleComp->SetCollisionResponseToChannel(ECC_Weapon, ECR_Ignore);
 
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (MoveComp)

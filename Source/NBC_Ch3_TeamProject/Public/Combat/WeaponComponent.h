@@ -68,6 +68,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Debug")
 	bool bDrawWeaponDebug = true;
 
+	// 히트스톱 — 피격 액터·플레이어의 CustomTimeDilation을 일시 변경 (BT/Animation/Movement 자동 스케일).
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon|HitStop", meta=(ClampMin="0.01", ClampMax="1.0"))
+	float HitStopTimeScale = 0.1f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon|HitStop", meta=(ClampMin="0.0", ClampMax="0.5"))
+	float HitStopDuration = 0.15f;
+
 private:
 	// 단일 펠릿 LineTrace + 데미지 (TryFire 산탄 루프에서 호출).
 	void FireSinglePellet(const FVector& Start, const FVector& Dir, float Range, float Damage,
@@ -75,4 +82,7 @@ private:
 
 	// 적중한 액터에 데미지 적용. HealthComponent 우선, 없으면 PointDamage 폴백.
 	void ApplyHitDamage(const FHitResult& Hit, float Damage, AActor* DamageInstigator);
+
+	// 피격 액터와 플레이어에 CustomTimeDilation 일시 적용 후 World 타이머로 복귀.
+	void ApplyHitStop(AActor* HitActor, AActor* Instigator);
 };
