@@ -37,4 +37,10 @@ public:
 	// 최대 체력
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Card Stat")
 	float MaxHPModifier;
+
+	// 탄창량 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Card Stat")
+	float AmmoCapacityModifier;
+
+
 };
