@@ -11,7 +11,7 @@ ARifle::ARifle()
 	
 	Damage = 10.0f;
 	FireRate = 0.1f;
-	MaxBulletCount = 30;
+	MaxBulletCount = 3000000;
 	MinSpread = 1.0f;
 	MaxSpread = 8.0f;
 	SpreadIncrease = 0.5f;

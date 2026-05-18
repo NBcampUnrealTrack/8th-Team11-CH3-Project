@@ -42,7 +42,7 @@ public:
 	float Range;
 	
 	// 탄약 정보
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Ammp")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Ammo")
 	int32 MaxBulletCount;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Ammo")
