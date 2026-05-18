@@ -47,9 +47,9 @@ public:
 	bool bIsCrouching;
 
 	//무기
-	UPROPERTY(EditAnywhere, Category = "Weapon|Text")
+	UPROPERTY(EditAnywhere, Category = "Weapon")
 	bool bGiveTestWeaponsOnBeginPlay = true;
-	UPROPERTY(EditAnywhere, Category = "Weapon|Test")
+	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TArray<TSubclassOf<ABaseWeapon>> TestStartWeapon;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TArray<ABaseWeapon*> WeaponInventory;
@@ -87,6 +87,12 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	UAnimMontage* SwitchWeaponMontage;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
+	UAnimMontage* ReloadMontage;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
+	UAnimMontage* CrouchReload;
 	
 
 	virtual void Tick(float DeltaTime) override;

@@ -421,6 +421,12 @@ void APlayerCharacter::ReloadWeapon()
 	}
 
 	CurWeapon->Reload();
+	
+	UAnimMontage* MontageToPlay = bIsCrouching ? CrouchReload: ReloadMontage;
+	if (MontageToPlay)
+	{
+		PlayAnimMontage(MontageToPlay);
+	}
 }
 
 void APlayerCharacter::SwitchWeapon(int32 index)
