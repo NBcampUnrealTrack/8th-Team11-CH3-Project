@@ -34,8 +34,13 @@ void ANBC_GameMode::OnMonsterKilled()
 
 	++CurrentKillCount;
 
+	if (OnKillCountChanged.IsBound())
+	{
+		OnKillCountChanged.Broadcast(CurrentKillCount);
+	}
+
 	int32 Score = FMath::RoundToInt(ScorePerKill * GS->DifficultyMultiplier);
-	GS->TotalScore += Score;
+	GS->AddScore(Score);
 
 	UE_LOG(LogTemp, Log, TEXT("Monster Killed: %d / %d"), CurrentKillCount, TargetKillCount);
 

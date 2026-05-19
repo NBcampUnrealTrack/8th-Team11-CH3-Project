@@ -37,7 +37,7 @@ void APortal::OnPortalOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other
 		// 데이터 저장 
 		if (GI && GS)
 		{
-			GI->SetSavedTotalScore(GS->TotalScore);
+			GI->SetSavedTotalScore(GS->GetCurrentScore());
 			GI->SetSavedCurrentWave(GS->CurrentWave);
 			// 추후 카드 저장
 		}

@@ -7,9 +7,8 @@
 #include "NBC_Ch3_TeamProject/Public/System/NBC_GameState.h"
 #include "NBC_GameMode.generated.h"
 
-/**
- * 
- */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKillCountChangedDelegate, int32, NewKillCount);
+
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API ANBC_GameMode : public AGameMode
 {
@@ -27,13 +26,11 @@ public:
 	// 플레이어가 죽었을 떄 호출 
 	void OnPlayerDied();
 
-	// WBP로부터 게임 종료 
-	UFUNCTION(BlueprintCallable, Category = "Game Flow")
-	void QuitGame();
+	UPROPERTY(BlueprintAssignable, Category = "Game Flow | UI")
+	FOnKillCountChangedDelegate OnKillCountChanged;
 
-	// 게임 재시작
-	UFUNCTION(BlueprintCallable, Category = "Game Flow")
-	void RequestRestartGame();
+	UFUNCTION(BlueprintPure, Category = "Game Flow")
+	int32 GetCurrentKillCount() const { return CurrentKillCount; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -56,18 +53,4 @@ protected:
 	// 웨이브 스폰 매니저
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WaveSpawnManager")
 	TObjectPtr<class UWaveSpawnManager> WaveSpawnManager;
-
-	// 게임 클리어UI
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<UUserWidget> GameClearWidgetClass;
-
-	UPROPERTY()
-	UUserWidget* GameClearWidgetInstance;
-
-	// 게임 오버 UI
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
-	TSubclassOf<UUserWidget> GameOverWidgetClass;
-
-	UPROPERTY()
-	UUserWidget* GameOverWidgetInstance;
 };
