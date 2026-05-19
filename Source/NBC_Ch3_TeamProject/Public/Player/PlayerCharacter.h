@@ -63,6 +63,8 @@ public:
 	int32 NextWeaponIndex;
 	FTimerHandle SwitchWeaponTimer;
 	
+	FTimerHandle ReloadTimer;
+	
 	bool bIsFiring;
 	
 	// 조준상태
@@ -121,7 +123,8 @@ public:
 	void StopCrouch();
 	UFUNCTION()
 	void ReloadWeapon();
-	
+	UFUNCTION()
+	void FinishReload();
 	
 	//무기 함수
 	UFUNCTION()

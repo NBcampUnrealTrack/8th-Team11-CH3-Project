@@ -4,6 +4,7 @@
 #include "Player/BaseWeapon.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/PlayerCharacter.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "Combat/WeaponComponent.h"
 #include "GameFramework/Controller.h"
 
@@ -18,6 +19,10 @@ ABaseWeapon::ABaseWeapon()
 	
 	//무기 콜리젼
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	OverheatParticleSystem = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("OverHeatParticle"));
+	OverheatParticleSystem->SetupAttachment(WeaponMesh);
+	OverheatParticleSystem->SetAutoActivate(false);
 	
 	Damage = 10.0f;
 	FireRate = 0.2f;
@@ -34,6 +39,8 @@ void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentBulletCount = MaxBulletCount;
+	WeaponMesh->SetRelativeScale3D(MeshScale);
+	WeaponMesh->SetRelativeRotation(MeshRotation);
 }
 
 void ABaseWeapon::Fire()
@@ -112,7 +119,7 @@ void ABaseWeapon::Reload()
 	if (CurrentReloadCount >= MaxReloadCount)
 	{
 		bIsOverHeat = true;
-
+		if (OverheatParticleSystem) OverheatParticleSystem->ActivateSystem();
 		UE_LOG(LogTemp, Warning, TEXT("OVERHEATED! %f seconds cooldown"), OverheatCooldown);
 
 		if (GEngine)
@@ -153,6 +160,7 @@ void ABaseWeapon::OnOverHeatEnd()
 			-1, 2.0f, FColor::Green,
 			TEXT("Weapon cooled down!"));
 	}
+	if (OverheatParticleSystem) OverheatParticleSystem->DeactivateSystem();
 }
 
 void ABaseWeapon::ResetFireCooldown()
