@@ -86,6 +86,7 @@ public:
 	FVector DefaultSocketOffset;
 
 	
+	bool bIsReloading = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	UAnimMontage* SwitchWeaponMontage;
