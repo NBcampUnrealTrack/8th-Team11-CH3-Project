@@ -21,6 +21,7 @@ public:
 	void ChangePhase(EGamePhase NewPhase);
 
 	// 몹이 죽었을 때 호출 
+	UFUNCTION()
 	void OnMonsterKilled();
 
 	// 플레이어가 죽었을 떄 호출 
@@ -40,4 +41,11 @@ protected:
 	// 클리어 조건 웨이브 수 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="GameRules")
 	int32 MaxWaves;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Score")
+	int32 ScorePerKill = 100;
+
+	// 웨이브 스폰 매니저
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WaveSpawnManager")
+	TObjectPtr<class UWaveSpawnManager> WaveSpawnManager;
 };

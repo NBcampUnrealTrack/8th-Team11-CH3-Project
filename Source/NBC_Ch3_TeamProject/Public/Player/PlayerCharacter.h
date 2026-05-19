@@ -9,6 +9,7 @@
 class UCameraComponent;
 class USpringArmComponent;
 class ABaseWeapon;
+class UWeaponComponent;
 
 struct FInputActionValue;
 
@@ -27,6 +28,8 @@ public:
 	USpringArmComponent* SpringArm;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
 	UCameraComponent* Camera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
+	UWeaponComponent* WeaponComponent;
 
 	float MaxHealth;
 
@@ -38,24 +41,60 @@ public:
 	float SprintMultiplier;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float CrouchSpeed; // 앉기 스피드
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	bool bIsCrouching;
 
 	//무기
 	UPROPERTY(EditAnywhere, Category = "Weapon")
-	TArray<TSubclassOf<ABaseWeapon>> StartWeapon;
+	bool bGiveTestWeaponsOnBeginPlay = true;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	TArray<TSubclassOf<ABaseWeapon>> TestStartWeapon;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	TArray<ABaseWeapon*> WeaponInventory;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	int32 CurrentWeaponIndex;
+	
 	// 교체상태
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	bool bIsSwitch;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	int32 NextWeaponIndex;
+	FTimerHandle SwitchWeaponTimer;
+	
+	FTimerHandle ReloadTimer;
 	
 	bool bIsFiring;
 	
+	// 조준상태
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Aim")
+	bool bIsAiming;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	float DefaultFOV;  // 기본시야
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	float AimFOV;  // 조준 시야
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	float AimSpeed; // 조준 속도
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	float DefaultArmLength;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	float AimArmLength;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	FVector AimSocketOffset;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim")
+	FVector DefaultSocketOffset;
+
+	
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	UAnimMontage* SwitchWeaponMontage;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
+	UAnimMontage* ReloadMontage;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
+	UAnimMontage* CrouchReload;
 	
 
 	virtual void Tick(float DeltaTime) override;
@@ -78,7 +117,14 @@ public:
 	void StartFire();
 	UFUNCTION()
 	void StopFire();
-	
+	UFUNCTION()
+	void StartCrouch();
+	UFUNCTION()
+	void StopCrouch();
+	UFUNCTION()
+	void ReloadWeapon();
+	UFUNCTION()
+	void FinishReload();
 	
 	//무기 함수
 	UFUNCTION()
@@ -96,4 +142,13 @@ public:
 	void SelectWeapon1();
 	void SelectWeapon2();
 	void SelectWeapon3();
+	
+	// 조준 함수
+	UFUNCTION()
+	void StartAim();
+	UFUNCTION()
+	void StopAim();
+	
+	UFUNCTION(BlueprintCallable)
+	bool AddWeaponToInventory(TSubclassOf<ABaseWeapon> WeaponClass);
 };

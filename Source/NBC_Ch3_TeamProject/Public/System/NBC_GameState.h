@@ -20,4 +20,7 @@ public:
 	int32 CurrentWave = 1;
 	float ElapsedTime = 0.0f;
 	float DifficultyMultiplier = 1.0f;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category="Score")
+	int32 TotalScore = 0;
 };

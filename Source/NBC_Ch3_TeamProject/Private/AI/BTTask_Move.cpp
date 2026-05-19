@@ -25,7 +25,7 @@ EBTNodeResult::Type UBTTask_Move::ExecuteTask(UBehaviorTreeComponent& OwnerComp,
 	}
 
 	ZombieAIController->MoveToActor(PlayerCharacter, AcceptanceRadius);
-	UE_LOG(LogTemp, Warning, TEXT("MoveToActor"));
+	// UE_LOG(LogTemp, Warning, TEXT("MoveToActor"));
 
 	return EBTNodeResult::Succeeded;
 }

@@ -29,5 +29,6 @@ public:
 	UPROPERTY(EditAnywhere)
 	float SpreadRecovery;
 	
+	
 	virtual void Fire() override;
 };

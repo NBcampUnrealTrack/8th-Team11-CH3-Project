@@ -7,6 +7,8 @@
 #include "BaseWeapon.generated.h"
 
 class USkeletalMeshComponent;
+class UWeaponConfig;
+class UParticleSystemComponent;
 
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API ABaseWeapon : public AActor
@@ -20,7 +22,14 @@ public:
 	ABaseWeapon();
 	
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
-	USkeletalMeshComponent *WeaponMesh;
+	USkeletalMeshComponent* WeaponMesh;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|FX")
+	UParticleSystemComponent* OverheatParticleSystem;
+	
+	// 무기 스펙 데이터
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	UWeaponConfig* WeaponConfig; 
 
 	//무기 정보
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
@@ -36,7 +45,7 @@ public:
 	float Range;
 	
 	// 탄약 정보
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Ammp")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Ammo")
 	int32 MaxBulletCount;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|Ammo")
@@ -54,6 +63,15 @@ public:
 	bool bIsOverHeat;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon|OverHeat")
 	float OverheatCooldown;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Aim")
+	float AimingSpread;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FVector MeshScale = FVector(1.0f);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FRotator MeshRotation = FRotator::ZeroRotator;
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void Fire();

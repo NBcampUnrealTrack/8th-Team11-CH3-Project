@@ -12,5 +12,7 @@ class NBC_CH3_TEAMPROJECT_API UBTTask_Death : public UBTTaskNode
 public:
 	UBTTask_Death();
 
+	void AddToOnDeath();
+
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 };
