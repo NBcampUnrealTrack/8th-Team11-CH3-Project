@@ -404,29 +404,34 @@ void APlayerCharacter::StopCrouch()
 void APlayerCharacter::ReloadWeapon()
 {
 	if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex)) return;
-	
+    
 	ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
 	if (!CurWeapon) return;
-	
-	if (CurWeapon->bIsOverHeat)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Cannot reload: Weapon overheated"));
-		return;
-	}
-	
-	if (CurWeapon->CurrentBulletCount >= CurWeapon->MaxBulletCount)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Cannot reload: Ammo already full"));
-		return;
-	}
+    
+	if (CurWeapon->bIsOverHeat) return;
+	if (CurWeapon->CurrentBulletCount >= CurWeapon->MaxBulletCount) return;
 
-	CurWeapon->Reload();
-	
-	UAnimMontage* MontageToPlay = bIsCrouching ? CrouchReload: ReloadMontage;
+	UAnimMontage* MontageToPlay = bIsCrouching ? CrouchReload : ReloadMontage;
 	if (MontageToPlay)
 	{
-		PlayAnimMontage(MontageToPlay);
+		float Duration = PlayAnimMontage(MontageToPlay);
+		GetWorldTimerManager().SetTimer(
+			ReloadTimer,
+			this,
+			&APlayerCharacter::FinishReload,
+			Duration > 0.0f ? Duration : 0.1f,
+			false);
 	}
+	else
+	{
+		FinishReload();
+	}
+}
+void APlayerCharacter::FinishReload()
+{
+	if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex)) return;
+	ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
+	if (CurWeapon) CurWeapon->Reload();
 }
 
 void APlayerCharacter::SwitchWeapon(int32 index)
@@ -592,6 +597,7 @@ bool APlayerCharacter::AddWeaponToInventory(TSubclassOf<ABaseWeapon> WeaponClass
 		FAttachmentTransformRules::SnapToTargetNotIncludingScale,
 		TEXT("WeaponSocket"));
 	
+	NewWeapon->WeaponMesh->SetRelativeRotation(NewWeapon->MeshRotation);
 	NewWeapon->SetActorHiddenInGame(true);
 	WeaponInventory.Add(NewWeapon);
 	return true;

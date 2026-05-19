@@ -8,6 +8,7 @@
 
 class USkeletalMeshComponent;
 class UWeaponConfig;
+class UParticleSystemComponent;
 
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API ABaseWeapon : public AActor
@@ -23,6 +24,8 @@ public:
 	UPROPERTY(visibleAnywhere, BlueprintReadOnly)
 	USkeletalMeshComponent* WeaponMesh;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|FX")
+	UParticleSystemComponent* OverheatParticleSystem;
 	
 	// 무기 스펙 데이터
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
@@ -63,6 +66,12 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Aim")
 	float AimingSpread;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FVector MeshScale = FVector(1.0f);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FRotator MeshRotation = FRotator::ZeroRotator;
 	
 	UFUNCTION(BlueprintCallable)
 	virtual void Fire();
