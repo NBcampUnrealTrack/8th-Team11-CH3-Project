@@ -27,6 +27,14 @@ public:
 	// 플레이어가 죽었을 떄 호출 
 	void OnPlayerDied();
 
+	// WBP로부터 게임 종료 
+	UFUNCTION(BlueprintCallable, Category = "Game Flow")
+	void QuitGame();
+
+	// 게임 재시작
+	UFUNCTION(BlueprintCallable, Category = "Game Flow")
+	void RequestRestartGame();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -48,4 +56,18 @@ protected:
 	// 웨이브 스폰 매니저
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WaveSpawnManager")
 	TObjectPtr<class UWaveSpawnManager> WaveSpawnManager;
+
+	// 게임 클리어UI
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> GameClearWidgetClass;
+
+	UPROPERTY()
+	UUserWidget* GameClearWidgetInstance;
+
+	// 게임 오버 UI
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<UUserWidget> GameOverWidgetClass;
+
+	UPROPERTY()
+	UUserWidget* GameOverWidgetInstance;
 };
