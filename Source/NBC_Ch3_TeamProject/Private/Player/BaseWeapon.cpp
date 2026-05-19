@@ -39,6 +39,8 @@ void ABaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 	CurrentBulletCount = MaxBulletCount;
+	WeaponMesh->SetRelativeScale3D(MeshScale);
+	WeaponMesh->SetRelativeRotation(MeshRotation);
 }
 
 void ABaseWeapon::Fire()

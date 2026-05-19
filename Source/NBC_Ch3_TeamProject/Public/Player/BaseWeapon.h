@@ -67,6 +67,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon|Aim")
 	float AimingSpread;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FVector MeshScale = FVector(1.0f);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	FRotator MeshRotation = FRotator::ZeroRotator;
+	
 	UFUNCTION(BlueprintCallable)
 	virtual void Fire();
 	
