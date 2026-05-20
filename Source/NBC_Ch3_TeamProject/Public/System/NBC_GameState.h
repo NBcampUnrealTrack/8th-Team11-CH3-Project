@@ -30,7 +30,6 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Game State")
 	int32 GetCurrentScore() const { return TotalScore; }
-
 private:
 	UPROPERTY(VisibleAnyWhere, Category="Score")
 	int32 TotalScore = 0;
