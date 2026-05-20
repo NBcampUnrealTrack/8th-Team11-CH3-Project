@@ -9,9 +9,9 @@
 class UTextBlock;
 class UImage;
 class UButton;
-class UCardDataAsset;
+class UBaseDataAsset;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCardSelected, UCardDataAsset*, SelectedData);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCardSelected, UBaseDataAsset*, SelectedData);
 
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API UCardSlotWidget : public UUserWidget
@@ -36,7 +36,7 @@ public:
 
 	// 카드 데이터 초기화
 	UFUNCTION(BlueprintCallable, Category = "Card UI")
-	void SetupCard(UCardDataAsset* CardData);
+	void SetupCard(UBaseDataAsset* BaseData);
 
 	UPROPERTY(BlueprintAssignable, Category = "Card UI")
 	FOnCardSelected OnCardSelected;
@@ -49,5 +49,5 @@ private:
 
 	// 현재 슬롯이 들고 있는 카드 데이터
 	UPROPERTY()
-	UCardDataAsset* CurrentCardData;
+	UBaseDataAsset* CurrentCardData;
 };

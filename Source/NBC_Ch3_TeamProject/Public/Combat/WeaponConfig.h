@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataAsset.h"
+#include "System/BaseDataAsset.h"
 #include "WeaponConfig.generated.h"
 
 class USoundBase;
@@ -20,7 +20,7 @@ enum class EWeaponClass : uint8
 // 무기 발사·반동·소음 파라미터 DataAsset.
 // 인스턴스마다 별도 DA를 만들어 WeaponComponent에 할당한다.
 UCLASS(BlueprintType)
-class NBC_CH3_TEAMPROJECT_API UWeaponConfig : public UDataAsset
+class NBC_CH3_TEAMPROJECT_API UWeaponConfig : public UBaseDataAsset
 {
 	GENERATED_BODY()
 
@@ -30,12 +30,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon|Identity")
 	FName WeaponId = NAME_None;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon|Identity")
-	FText DisplayName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon|Identity")
-	TObjectPtr<UTexture2D> Icon;
 
 	// 한 번 발사할 때 나가는 펠릿 개수 (샷건은 8~12).
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon|Fire", meta=(ClampMin="1"))
