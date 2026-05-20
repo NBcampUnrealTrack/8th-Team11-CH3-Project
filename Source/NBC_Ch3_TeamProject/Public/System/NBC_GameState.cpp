@@ -15,3 +15,13 @@ void ANBC_GameState::Tick(float DeltaTime)
 		DifficultyMultiplier = 1.0f + (CurrentWave * 0.5f) + (ElapsedTime * 0.01f);
 	}
 }
+
+void ANBC_GameState::AddScore(int32 Score)
+{
+	TotalScore += Score;
+
+	if (OnScoreChanged.IsBound())
+	{
+		OnScoreChanged.Broadcast(TotalScore);
+	}
+}

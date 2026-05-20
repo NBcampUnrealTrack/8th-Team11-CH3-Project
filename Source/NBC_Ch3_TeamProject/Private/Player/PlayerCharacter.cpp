@@ -73,66 +73,58 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-    
+
     // 발사 처리
-	if (bIsFiring && WeaponComponent)
-	{
-		if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex))
-		{
-			return;
-		}
+    if (bIsFiring && WeaponComponent)
+    {
+        if (WeaponInventory.IsValidIndex(CurrentWeaponIndex))
+        {
+            ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
 
-		ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
-		if (!CurWeapon) return;
+            if (CurWeapon && !CurWeapon->bIsOverHeat && !bIsReloading && CurWeapon->CurrentBulletCount > 0)
+            {
+                FVector MuzzleLocation = GetActorLocation();
 
-		if (CurWeapon->bIsOverHeat) return;
+                if (CurWeapon->WeaponMesh && CurWeapon->WeaponMesh->DoesSocketExist(TEXT("Muzzle")))
+                {
+                    MuzzleLocation = CurWeapon->WeaponMesh->GetSocketLocation(TEXT("Muzzle"));
+                }
 
-		if (CurWeapon->CurrentBulletCount <= 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Cannot fire: No ammo"));
-			return;
-		}
-		
-		FVector MuzzleLocation = GetActorLocation();
+                const FRotator AimRotation = GetControlRotation();
+                float SpreadMult = bIsAiming ? 0.3f : 1.0f;
 
-		if (CurWeapon->WeaponMesh && CurWeapon->WeaponMesh->DoesSocketExist(TEXT("Muzzle")))
-		{
-			MuzzleLocation = CurWeapon->WeaponMesh->GetSocketLocation(TEXT("Muzzle"));
-		}
+                if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
+                {
+                    SpreadMult *= (RifleWeapon->CurrentSpread / RifleWeapon->MinSpread);
+                }
 
-		const FRotator AimRotation = GetControlRotation();
-		float SpreadMult = bIsAiming ? 0.3f : 1.0f;
+                const bool bFired = WeaponComponent->TryFire(
+                    MuzzleLocation,
+                    AimRotation,
+                    this,
+                    SpreadMult
+                );
 
-		if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
-		{
-			SpreadMult *= (RifleWeapon->CurrentSpread / RifleWeapon->MinSpread);
-		}
+                if (bFired)
+                {
+                    if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
+                    {
+                        RifleWeapon->CurrentSpread = FMath::Min(
+                            RifleWeapon->CurrentSpread + RifleWeapon->SpreadIncrease,
+                            RifleWeapon->MaxSpread
+                        );
+                    }
 
-		const bool bFired = WeaponComponent->TryFire(
-			MuzzleLocation,
-			AimRotation,
-			this,
-			SpreadMult
-		);
-
-		if (bFired)
-		{
-			if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
-			{
-				RifleWeapon->CurrentSpread = FMath::Min(
-					RifleWeapon->CurrentSpread + RifleWeapon->SpreadIncrease,
-					RifleWeapon->MaxSpread
-				);
-			}
-			
-			CurWeapon->CurrentBulletCount = FMath::Max(
-				CurWeapon->CurrentBulletCount - 1,
-				0
-			);
-		}
+                    CurWeapon->CurrentBulletCount = FMath::Max(
+                        CurWeapon->CurrentBulletCount - 1,
+                        0
+                    );
+                }
+            }
+        }
     }
-    
-    // 반동 처리 
+
+    // 반동 처리
     if (WeaponComponent)
     {
         float PitchDelta, YawDelta;
@@ -140,26 +132,28 @@ void APlayerCharacter::Tick(float DeltaTime)
         AddControllerPitchInput(PitchDelta);
         AddControllerYawInput(YawDelta);
     }
-    
-    // FOV 전환 
+
+    // FOV 전환
     if (Camera)
     {
         float TargetFOV = bIsAiming ? AimFOV : DefaultFOV;
         float NewFOV = FMath::FInterpTo(Camera->FieldOfView, TargetFOV, DeltaTime, AimSpeed);
         Camera->SetFieldOfView(NewFOV);
     }
-	if (SpringArm)
-	{
-		float TargetLength = bIsAiming ? AimArmLength : DefaultArmLength;
-		SpringArm->TargetArmLength = FMath::FInterpTo(
-			SpringArm->TargetArmLength, TargetLength, DeltaTime, AimSpeed);
 
-		FVector TargetOffset = bIsAiming ? AimSocketOffset : DefaultSocketOffset;
-		SpringArm->SocketOffset = FMath::VInterpTo(
-			SpringArm->SocketOffset, TargetOffset, DeltaTime, AimSpeed);
-	}
+    // SpringArm
+    if (SpringArm)
+    {
+        float TargetLength = bIsAiming ? AimArmLength : DefaultArmLength;
+        SpringArm->TargetArmLength = FMath::FInterpTo(
+            SpringArm->TargetArmLength, TargetLength, DeltaTime, AimSpeed);
 
+        FVector TargetOffset = bIsAiming ? AimSocketOffset : DefaultSocketOffset;
+        SpringArm->SocketOffset = FMath::VInterpTo(
+            SpringArm->SocketOffset, TargetOffset, DeltaTime, AimSpeed);
+    }
 }
+
 
 void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -403,13 +397,17 @@ void APlayerCharacter::StopCrouch()
 
 void APlayerCharacter::ReloadWeapon()
 {
+	if (bIsReloading) return;
+
 	if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex)) return;
-    
+
 	ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
 	if (!CurWeapon) return;
-    
+
 	if (CurWeapon->bIsOverHeat) return;
 	if (CurWeapon->CurrentBulletCount >= CurWeapon->MaxBulletCount) return;
+
+	bIsReloading = true;  // ← 모든 체크 통과 후 여기서 설정
 
 	UAnimMontage* MontageToPlay = bIsCrouching ? CrouchReload : ReloadMontage;
 	if (MontageToPlay)
@@ -427,11 +425,13 @@ void APlayerCharacter::ReloadWeapon()
 		FinishReload();
 	}
 }
+
 void APlayerCharacter::FinishReload()
 {
 	if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex)) return;
 	ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
 	if (CurWeapon) CurWeapon->Reload();
+	bIsReloading = false;
 }
 
 void APlayerCharacter::SwitchWeapon(int32 index)
