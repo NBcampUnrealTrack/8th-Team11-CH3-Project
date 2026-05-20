@@ -37,6 +37,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Game Flow")
 	void RequestRestartGame();
+
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -72,5 +75,9 @@ protected:
 
 	UPROPERTY()
 	UUserWidget* GameOverWidgetInstance;
+
+	// BP Æ÷Å» 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game Flow | Spawn")
+	TSubclassOf<AActor> PortalClass;
 
 };
