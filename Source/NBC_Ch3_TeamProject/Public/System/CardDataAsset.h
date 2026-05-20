@@ -3,27 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/DataAsset.h"
+#include "System/BaseDataAsset.h"
 #include "CardDataAsset.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class NBC_CH3_TEAMPROJECT_API UCardDataAsset : public UPrimaryDataAsset
+class NBC_CH3_TEAMPROJECT_API UCardDataAsset : public UBaseDataAsset
 {
 	GENERATED_BODY()
 public:
-
-	// 카드 정보들
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Card Info")
-	FText CardName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Card Info")
-	UTexture2D* CardIcon;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Card Info")
-	FText CardDescription;
 
 	// 카드 스탯들
 	// 공격력
