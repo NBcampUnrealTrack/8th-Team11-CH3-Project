@@ -4,10 +4,11 @@
 #include "NBC_Ch3_TeamProject/Public/System/NBC_GameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "AI/WaveSpawnManager.h"
+#include "Blueprint/UserWidget.h"
 
 ANBC_GameMode::ANBC_GameMode()
 {
-	TargetKillCount = 30;
+	TargetKillCount = 5;
 	CurrentKillCount = 0;
 	MaxWaves = 5;
 
@@ -33,8 +34,13 @@ void ANBC_GameMode::OnMonsterKilled()
 
 	++CurrentKillCount;
 
+	if (OnKillCountChanged.IsBound())
+	{
+		OnKillCountChanged.Broadcast(CurrentKillCount);
+	}
+
 	int32 Score = FMath::RoundToInt(ScorePerKill * GS->DifficultyMultiplier);
-	GS->TotalScore += Score;
+	GS->AddScore(Score);
 
 	UE_LOG(LogTemp, Log, TEXT("Monster Killed: %d / %d"), CurrentKillCount, TargetKillCount);
 
@@ -65,6 +71,7 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 		CurrentKillCount = 0;
 		TargetKillCount += 5;
 		UE_LOG(LogTemp, Warning, TEXT("Phase Changed: Battle (Wave %d )"), GS->CurrentWave);
+		WaveSpawnManager->SpawnZombie();
 		break;
 
 	case EGamePhase::Reward:
@@ -73,20 +80,132 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 		break;
 
 	case EGamePhase::GameOver:
+	{
 		UE_LOG(LogTemp, Error, TEXT("Phase Changed: Game Over"));
-		// 게임 정지 밑 사망 데이터, UI등 
-		UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+		if (!GameOverWidgetClass)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("게임 오버 위젯 미등록"));
+			return;
+		}
+
+		APlayerController* PC = GetWorld()->GetFirstPlayerController();
+		if (!PC) return;
+
+		if (!GameOverWidgetInstance)
+		{
+			GameOverWidgetInstance = CreateWidget<UUserWidget>(PC, GameClearWidgetClass);
+		}
+
+		if (GameOverWidgetInstance)
+		{
+			GameOverWidgetInstance->AddToViewport();
+
+			// 점수 업데이트
+			UFunction* UpdateScoreFunc = GameOverWidgetInstance->FindFunction(FName("UpdateScoreUI"));
+
+			if (UpdateScoreFunc)
+			{
+				struct FScoreParameters
+				{
+					int32 NewScore;
+				};
+
+				FScoreParameters Params;
+				Params.NewScore = GS->TotalScore;
+
+				GameOverWidgetInstance->ProcessEvent(UpdateScoreFunc, &Params);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("UpdateScoreUI 이벤트 발견 불가"))
+			}
+
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(GameOverWidgetInstance->GetCachedWidget());
+			PC->SetInputMode(InputMode);
+			PC->bShowMouseCursor = true;
+
+			UGameplayStatics::SetGamePaused(GetWorld(), true);
+		}
 		break;
+	}
 
 	case EGamePhase::GameClear:
+	{
+
 		UE_LOG(LogTemp, Warning, TEXT("Phase Changed: Game Clear"));
-		// 게임 정지 및 클리어 데이터, UI등 
-		UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+		if (!GameClearWidgetClass)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("게임 클리어 위젯 미등록"));
+			return;
+		}
+
+		APlayerController* PC = GetWorld()->GetFirstPlayerController();
+		if (!PC) return;
+
+		if (!GameClearWidgetInstance)
+		{
+			GameClearWidgetInstance = CreateWidget<UUserWidget>(PC, GameClearWidgetClass);
+		}
+
+		if (GameClearWidgetInstance)
+		{
+			GameClearWidgetInstance->AddToViewport();
+
+			// UI 점수 업데이트 함수 
+			UFunction* UpdateScoreFunc = GameClearWidgetInstance->FindFunction(FName("UpdateScoreUI"));
+
+			// 점수 업데이트 
+			if (UpdateScoreFunc)
+			{
+				struct FScoreParameters
+				{
+					int32 NewScore;
+				};
+
+				FScoreParameters Params;
+				Params.NewScore = GS->TotalScore;
+
+				GameClearWidgetInstance->ProcessEvent(UpdateScoreFunc, &Params);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("위젯에서 UpdateScoreUI 이벤트를 찾을 수 없습니다."))
+			}
+
+			FInputModeUIOnly InputMode;
+			InputMode.SetWidgetToFocus(GameClearWidgetInstance->GetCachedWidget());
+			PC->SetInputMode(InputMode);
+			PC->bShowMouseCursor = true;
+
+			UGameplayStatics::SetGamePaused(GetWorld(), true);
+		}
 		break;
+	}
+	
 	}
 }
 
 void ANBC_GameMode::OnPlayerDied()
 {
 	ChangePhase(EGamePhase::GameOver);
+}
+
+void ANBC_GameMode::QuitGame()
+{
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+
+	if (PC)
+	{
+		UKismetSystemLibrary::QuitGame(GetWorld(), PC, EQuitPreference::Quit, false);
+	}
+}
+
+void ANBC_GameMode::RequestRestartGame()
+{
+	FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+
+	UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentLevelName));
 }

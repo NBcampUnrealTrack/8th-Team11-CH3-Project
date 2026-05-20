@@ -6,6 +6,8 @@
 #include "GameFramework/GameState.h"
 #include "NBC_GameState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnScoreChangedDelegate, int32, NewScore);
+
 UENUM(BlueprintType)
 enum class EGamePhase : uint8 { Battle, Reward, GameOver, GameClear };
 
@@ -21,6 +23,15 @@ public:
 	float ElapsedTime = 0.0f;
 	float DifficultyMultiplier = 1.0f;
 
-	UPROPERTY(VisibleAnyWhere, BlueprintReadOnly, Category="Score")
+	UPROPERTY(BlueprintAssignable, Category="Game State | UI")
+	FOnScoreChangedDelegate OnScoreChanged;
+
+	void AddScore(int32 Score);
+
+	UFUNCTION(BlueprintPure, Category = "Game State")
+	int32 GetCurrentScore() const { return TotalScore; }
+
+private:
+	UPROPERTY(VisibleAnyWhere, Category="Score")
 	int32 TotalScore = 0;
 };

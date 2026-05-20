@@ -7,9 +7,8 @@
 #include "NBC_Ch3_TeamProject/Public/System/NBC_GameState.h"
 #include "NBC_GameMode.generated.h"
 
-/**
- * 
- */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKillCountChangedDelegate, int32, NewKillCount);
+
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API ANBC_GameMode : public AGameMode
 {
@@ -26,6 +25,12 @@ public:
 
 	// 플레이어가 죽었을 떄 호출 
 	void OnPlayerDied();
+
+	UPROPERTY(BlueprintAssignable, Category = "Game Flow | UI")
+	FOnKillCountChangedDelegate OnKillCountChanged;
+
+	UFUNCTION(BlueprintPure, Category = "Game Flow")
+	int32 GetCurrentKillCount() const { return CurrentKillCount; }
 
 protected:
 	virtual void BeginPlay() override;
