@@ -112,7 +112,7 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 				};
 
 				FScoreParameters Params;
-				Params.NewScore = GS->TotalScore;
+				Params.NewScore = GS->GetCurrentScore();
 
 				GameOverWidgetInstance->ProcessEvent(UpdateScoreFunc, &Params);
 			}
@@ -166,7 +166,7 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 				};
 
 				FScoreParameters Params;
-				Params.NewScore = GS->TotalScore;
+				Params.NewScore = GS->GetCurrentScore();
 
 				GameClearWidgetInstance->ProcessEvent(UpdateScoreFunc, &Params);
 			}
