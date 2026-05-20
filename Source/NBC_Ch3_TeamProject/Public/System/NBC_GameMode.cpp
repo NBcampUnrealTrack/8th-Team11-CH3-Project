@@ -20,10 +20,20 @@ void ANBC_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	ChangePhase(EGamePhase::Battle);
-
-	// 테스트용
 	WaveSpawnManager->SpawnZombie();
+}
+ 
+void ANBC_GameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	FTimerHandle TempTimerHandle;
+	GetWorldTimerManager().SetTimer(
+		TempTimerHandle,
+		FTimerDelegate::CreateUObject(this, &ANBC_GameMode::ChangePhase, EGamePhase::Battle),
+		0.2f,
+		false
+	);
 }
 
 void ANBC_GameMode::OnMonsterKilled()
@@ -68,15 +78,50 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 	switch (NewPhase)
 	{
 	case EGamePhase::Battle:
+		if (GS)
+		{
+			++GS->CurrentWave;
+		}
+
 		CurrentKillCount = 0;
 		TargetKillCount += 5;
 		UE_LOG(LogTemp, Warning, TEXT("Phase Changed: Battle (Wave %d )"), GS->CurrentWave);
-		WaveSpawnManager->SpawnZombie();
+		//WaveSpawnManager->SpawnZombie();
 		break;
 
 	case EGamePhase::Reward:
 		UE_LOG(LogTemp, Warning, TEXT("Phase Changed: Rewawrd"));
-		// 보상 포탈 따위 소환 
+		
+		if (PortalClass)
+		{
+			APlayerController* PC = GetWorld()->GetFirstPlayerController();
+			if (PC && PC->GetPawn())
+			{
+				AActor* PlayerActor = PC->GetPawn();
+
+				// 바라보는 방향으로 포탈 생성 위치 잡기 
+				FVector SpawnLocation = PlayerActor->GetActorLocation() + (PlayerActor->GetActorForwardVector() * 300.0f);
+
+				// 포탈 높이 맞추기 
+				SpawnLocation.Z = PlayerActor->GetActorLocation().Z;
+
+				// 플레이어 정면으로 바라보게 설정
+				FRotator SpawnRotation = PlayerActor->GetActorRotation();
+				SpawnRotation.Yaw += 180.0f;
+
+				// 포탈 스폰 
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+				GetWorld()->SpawnActor<AActor>(PortalClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+				UE_LOG(LogTemp, Log, TEXT("GameMode: 보상 포탈 소환"));
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("GameMode: PortalClass를 찾을 수 없습니다."))
+		}
 		break;
 
 	case EGamePhase::GameOver:
@@ -94,7 +139,7 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 
 		if (!GameOverWidgetInstance)
 		{
-			GameOverWidgetInstance = CreateWidget<UUserWidget>(PC, GameClearWidgetClass);
+			GameOverWidgetInstance = CreateWidget<UUserWidget>(PC, GameOverWidgetClass);
 		}
 
 		if (GameOverWidgetInstance)
@@ -118,7 +163,7 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("UpdateScoreUI 이벤트 발견 불가"))
+				UE_LOG(LogTemp, Warning, TEXT("Can't find UpdateScoreUI"));
 			}
 
 			FInputModeUIOnly InputMode;
@@ -138,7 +183,7 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 
 		if (!GameClearWidgetClass)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("게임 클리어 위젯 미등록"));
+			UE_LOG(LogTemp, Warning, TEXT("Can't Find GameClear Widget"));
 			return;
 		}
 
@@ -172,7 +217,7 @@ void ANBC_GameMode::ChangePhase(EGamePhase NewPhase)
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("위젯에서 UpdateScoreUI 이벤트를 찾을 수 없습니다."))
+				UE_LOG(LogTemp, Warning, TEXT("Can't find UpdateScoreUI"))
 			}
 
 			FInputModeUIOnly InputMode;
@@ -206,6 +251,8 @@ void ANBC_GameMode::QuitGame()
 void ANBC_GameMode::RequestRestartGame()
 {
 	FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+
+	UE_LOG(LogTemp, Warning, TEXT("Restart Level"));
 
 	UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentLevelName));
 }
