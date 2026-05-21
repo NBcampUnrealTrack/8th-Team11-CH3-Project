@@ -36,3 +36,14 @@ void UHealthComponent::Heal(float Amount)
 	CurrentHealth = FMath::Clamp(CurrentHealth + Amount, 0.0f, MaxHealth);
 	OnHealthChanged.Broadcast(CurrentHealth);
 }
+
+void UHealthComponent::IncreaseMaxHealth(float Amount)
+{
+	if (Amount <= 0.0f) return;
+
+	MaxHealth += Amount;
+	CurrentHealth = FMath::Clamp(CurrentHealth + Amount, 0.0f, MaxHealth);
+	OnHealthChanged.Broadcast(CurrentHealth);
+}
+
+

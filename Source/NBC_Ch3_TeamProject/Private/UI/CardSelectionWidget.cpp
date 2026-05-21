@@ -3,12 +3,23 @@
 
 #include "UI/CardSelectionWidget.h"
 #include "NBC_Ch3_TeamProject/Public/System/CardDataAsset.h"
+#include "NBC_Ch3_TeamProject/Public/Combat/WeaponConfig.h"
 #include "NBC_Ch3_TeamProject/Public/UI/CardSlotWidget.h"
 #include "Kismet/KismetArrayLibrary.h"
 
 void UCardSelectionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
+	{
+		PC->bShowMouseCursor = true;
+
+		FInputModeUIOnly InputMode;
+		InputMode.SetWidgetToFocus(TakeWidget());
+		PC->SetInputMode(InputMode);
+	}
 
 	if (CardSlot_0)
 		CardSlot_0->OnCardSelected.AddDynamic(this, &UCardSelectionWidget::HandleCardSelected);
@@ -26,7 +37,7 @@ void UCardSelectionWidget::RefreshCardSelection()
 		return;
 	}
 
-	TArray<UCardDataAsset*> TempPool = TotalCardPool;
+	TArray<UBaseDataAsset*> TempPool = TotalCardPool;
 
 	// 카드 덱을 섞어줌 
 	const int32 LastIndex = TempPool.Num() - 1;
@@ -45,16 +56,36 @@ void UCardSelectionWidget::RefreshCardSelection()
 		CardSlot_2->SetupCard(TempPool[2]);
 }
 
-void UCardSelectionWidget::HandleCardSelected(UCardDataAsset* SelectedData)
+void UCardSelectionWidget::HandleCardSelected(UBaseDataAsset* SelectedData)
 {
 	if (!SelectedData) return;
 
 	// 선택 카드를 이용하여 플레이어 능력치 증강.
 	// 플레이어 측 함수 필요 
 
-	// 선택 카드 로그 찍기 
+	// 카드 데이터인 경우
+	if (UCardDataAsset* CardData = Cast<UCardDataAsset>(SelectedData))
+	{
 
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("선택된 카드: %s"), *SelectedData->CardName.ToString()));
+	}
+
+	// 무기 데이터인 경우
+	if (UWeaponConfig* WeaponData = Cast<UWeaponConfig>(SelectedData))
+	{
+
+	}
+
+
+	// 선택 카드 로그 찍기 
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("Selected Card: %s"), *SelectedData->DisplayName.ToString()));
 
 	RemoveFromParent();
+
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
+	{
+		PC->bShowMouseCursor = false;
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+	}
 }

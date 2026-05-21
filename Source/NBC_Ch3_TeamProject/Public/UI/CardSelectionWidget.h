@@ -7,7 +7,7 @@
 #include "CardSelectionWidget.generated.h"
 
 class UCardSlotWidget;
-class UCardDataAsset;
+class UBaseDataAsset;
 
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API UCardSelectionWidget : public UUserWidget
@@ -28,12 +28,12 @@ protected:
 	UCardSlotWidget* CardSlot_2;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Card System", meta = (AllowPrivate = "true"))
-	TArray<UCardDataAsset*> TotalCardPool;
+	TArray<UBaseDataAsset*> TotalCardPool;
 
 public:
 	// 카드 풀 초기화
 	UFUNCTION(BlueprintCallable, Category = "Card System")
-	void SetTotalCardPool(const TArray<UCardDataAsset*> CardPool) { TotalCardPool = CardPool; }
+	void SetTotalCardPool(const TArray<UBaseDataAsset*> CardPool) { TotalCardPool = CardPool; }
 
 	// 카드 뽑기 
 	UFUNCTION(BlueprintCallable, Category = "Card System")
@@ -41,5 +41,5 @@ public:
 
 private:
 	UFUNCTION()
-	void HandleCardSelected(UCardDataAsset* SelectedData);
+	void HandleCardSelected(UBaseDataAsset* SelectedData);
 };

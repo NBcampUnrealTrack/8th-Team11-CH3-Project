@@ -2,7 +2,7 @@
 
 
 #include "UI/CardSlotWidget.h"
-#include "NBC_Ch3_TeamProject/Public/System/CardDataAsset.h"
+#include "System/BaseDataAsset.h"
 #include "Components/TextBlock.h"
 #include "Components/Image.h"
 #include "Components/Button.h"
@@ -18,25 +18,25 @@ void UCardSlotWidget::NativeConstruct()
 	}
 }
 
-void UCardSlotWidget::SetupCard(UCardDataAsset* CardData)
+void UCardSlotWidget::SetupCard(UBaseDataAsset* BaseData)
 {
-	if (!CardData) return;
+	if (!BaseData) return;
 
-	CurrentCardData = CardData;
+	CurrentCardData = BaseData;
 
 	if (NameText)
 	{
-		NameText->SetText(CardData->CardName);
+		NameText->SetText(BaseData->DisplayName);
 	}
 
 	if (DescText)
 	{
-		DescText->SetText(CardData->CardDescription);
+		DescText->SetText(BaseData->DisplayDescription);
 	}
 
 	if (CardIcon)
 	{
-		CardIcon->SetBrushFromTexture(CardData->CardIcon);
+		CardIcon->SetBrushFromTexture(BaseData->Icon);
 	}
 }
 
