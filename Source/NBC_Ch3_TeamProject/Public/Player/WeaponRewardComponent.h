@@ -65,6 +65,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Reward")
 	void ApplyWeaponConfigReward(UWeaponConfig* Config);
 
+	// GameInstance에 무기 저장을 위한 함수
+	// 현재 무기 목록을 백업
+	UFUNCTION(BlueprintCallable, Category = "SaveWeapon")
+	void SaveWeaponsToInstance();
+
+	// 무기 목록 로드
+	UFUNCTION(BlueprintCallable, Category = "LoadWeapon")
+	void LoadWeaponsFromInstance();
+
 protected:
 	APlayerCharacter* GetOwnerPlayer() const;
 

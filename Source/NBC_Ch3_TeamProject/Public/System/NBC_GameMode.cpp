@@ -2,6 +2,7 @@
 
 
 #include "NBC_Ch3_TeamProject/Public/System/NBC_GameMode.h"
+#include "Player/WeaponRewardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "AI/WaveSpawnManager.h"
 #include "Blueprint/UserWidget.h"
@@ -31,10 +32,25 @@ void ANBC_GameMode::PostLogin(APlayerController* NewPlayer)
 	FTimerHandle TempTimerHandle;
 	GetWorldTimerManager().SetTimer(
 		TempTimerHandle,
-		FTimerDelegate::CreateUObject(this, &ANBC_GameMode::ChangePhase, EGamePhase::Battle),
+		FTimerDelegate::CreateUObject(this, &ANBC_GameMode::InitializeLoadedGame, NewPlayer),
 		0.2f,
 		false
 	);
+}
+
+void ANBC_GameMode::InitializeLoadedGame(APlayerController* TargetPlayer)
+{
+	if (TargetPlayer && TargetPlayer->GetPawn())
+	{
+		UWeaponRewardComponent* RewardComp = TargetPlayer->GetPawn()->FindComponentByClass<UWeaponRewardComponent>();
+
+		if (RewardComp)
+		{
+			RewardComp->LoadWeaponsFromInstance();
+		}
+	}
+
+	ChangePhase(EGamePhase::Battle);
 }
 
 void ANBC_GameMode::OnMonsterKilled()

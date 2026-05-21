@@ -3,3 +3,8 @@
 
 #include "System/NBC_GameInstance.h"
 
+void UNBC_GameInstance::ClearSavedData()
+{
+	SavedWeaponClasses.Empty();
+	SavedCurrentWeaponIndex = -1;
+}

@@ -8,6 +8,8 @@
 #include "GameFramework/Character.h"
 #include "NBC_Ch3_TeamProject/Public/System/NBC_GameInstance.h"
 #include "NBC_Ch3_TeamProject/Public/System/NBC_GameState.h"
+#include "Player/WeaponRewardComponent.h"	
+#include "Player/PlayerCharacter.h"
 
 // Sets default values
 APortal::APortal()
@@ -41,6 +43,22 @@ void APortal::OnPortalOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other
 			GI->SetSavedCurrentWave(GS->CurrentWave);
 			// 추후 카드 저장
 		}
+
+		// 무기 세이브
+		if (APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor))
+		{
+			UWeaponRewardComponent* RewardComp = Player->FindComponentByClass<UWeaponRewardComponent>();
+			if (RewardComp)
+			{
+				RewardComp->SaveWeaponsToInstance();
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("PORTAL: Can't Find UWeaponRewardComponent"));
+			}
+
+		}
+
 
 		// 상점 레벨로 이동
 		if (!TargetLevelName.IsNone())

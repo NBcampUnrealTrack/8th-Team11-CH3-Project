@@ -16,21 +16,13 @@ class NBC_CH3_TEAMPROJECT_API UCardDataAsset : public UBaseDataAsset
 public:
 
 	// 카드 스탯들
-	// 공격력
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Card Stat")
-	float AttackPowerModifier;
-
-	// 연사 속도
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Card Stat")
-	float RateOfFireModifier;
-
 	// 최대 체력
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Card Stat")
 	float MaxHPModifier;
 
-	// 탄창량 
+	// 이동속도 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Card Stat")
-	float AmmoCapacityModifier;
+	float MoveSpeed;
 
 
 };

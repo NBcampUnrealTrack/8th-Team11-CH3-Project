@@ -2,6 +2,8 @@
 
 
 #include "UI/CardSelectionWidget.h"
+#include "NBC_Ch3_TeamProject/Public/Player/WeaponRewardComponent.h"
+#include "NBC_Ch3_TeamProject/Public/Combat/HealthComponent.h"
 #include "NBC_Ch3_TeamProject/Public/System/CardDataAsset.h"
 #include "NBC_Ch3_TeamProject/Public/Combat/WeaponConfig.h"
 #include "NBC_Ch3_TeamProject/Public/UI/CardSlotWidget.h"
@@ -60,6 +62,9 @@ void UCardSelectionWidget::HandleCardSelected(UBaseDataAsset* SelectedData)
 {
 	if (!SelectedData) return;
 
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (!PC || !PC->GetPawn()) return;
+
 	// 선택 카드를 이용하여 플레이어 능력치 증강.
 	// 플레이어 측 함수 필요 
 
@@ -72,6 +77,16 @@ void UCardSelectionWidget::HandleCardSelected(UBaseDataAsset* SelectedData)
 	// 무기 데이터인 경우
 	if (UWeaponConfig* WeaponData = Cast<UWeaponConfig>(SelectedData))
 	{
+		UWeaponRewardComponent* RewardComp = PC->GetPawn()->FindComponentByClass<UWeaponRewardComponent>();
+
+		if (RewardComp)
+		{
+			RewardComp->ApplyWeaponConfigReward(WeaponData);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Can't Find WeaponRewardComponent"));
+		}
 
 	}
 
@@ -81,7 +96,6 @@ void UCardSelectionWidget::HandleCardSelected(UBaseDataAsset* SelectedData)
 
 	RemoveFromParent();
 
-	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (PC)
 	{
 		PC->bShowMouseCursor = false;
