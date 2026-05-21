@@ -25,6 +25,9 @@ public:
 	// 회복 (MaxHealth 상한 클램프).
 	UFUNCTION(BlueprintCallable, Category="Health")
 	void Heal(float Amount);
+	
+	UFUNCTION(BlueprintCallable, Category="Health")
+	void IncreaseMaxHealth(float Amount);
 
 	UFUNCTION(BlueprintPure, Category="Health")
 	float GetCurrentHealth() const { return CurrentHealth; }
@@ -34,6 +37,7 @@ public:
 
 	UFUNCTION(BlueprintPure, Category="Health")
 	bool IsDead() const { return CurrentHealth <= 0.0f; }
+
 
 	// 체력 변경 이벤트 — HUD HealthBar 구독.
 	UPROPERTY(BlueprintAssignable, Category="Events")

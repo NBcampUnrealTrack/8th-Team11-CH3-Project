@@ -132,3 +132,18 @@ FText UWeaponRewardComponent::GetChoiceDisplayName(int32 ChoiceIndex) const
 	return FText::FromString(WeaponClass->GetName());
 }
 
+void UWeaponRewardComponent::ApplyWeaponConfigReward(UWeaponConfig* Config)
+{
+	if (!Config) return;
+
+	APlayerCharacter* Player = GetOwnerPlayer();
+	if (!Player) return;
+
+	if (!Player->WeaponInventory.IsValidIndex(Player->CurrentWeaponIndex)) return;
+
+	ABaseWeapon* CurrentWeapon = Player->WeaponInventory[Player->CurrentWeaponIndex];
+	if (!CurrentWeapon) return;
+
+	ApplyUpgradeToWeapon(CurrentWeapon);
+	OnRewardApplied.Broadcast(CurrentWeapon, true);
+}
