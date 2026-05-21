@@ -318,46 +318,6 @@ bool ABossAIController::IsCanJumpAttackSight()
 
 void ABossAIController::TriggerPhaseTransition()
 {
-	//// 2. 클래스 이름(StateTreeAIComponent)으로 블루프린트에 추가된 컴포넌트를 안전하게 검색합니다.
-	//UClass* TargetClass = StaticLoadClass(UActorComponent::StaticClass(), nullptr, TEXT("/Script/GameplayStateTreeModule.StateTreeAIComponent"));
-	//if (!TargetClass)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("1"));
-	//	return;
-	//}
-	//
-	//UActorComponent* FoundComponent = GetComponentByClass(TargetClass);
-
-	//if (FoundComponent)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("2"));
-	//	// 3. 내부 함수인 "SendStateTreeEvent"를 이름으로 직접 찾아옵니다.
-	//	UFunction* SendEventFunc = FoundComponent->GetClass()->FindFunctionByName(TEXT("SendStateTreeEvent"));
-	//	if (SendEventFunc)
-	//	{
-	//		UE_LOG(LogTemp, Warning, TEXT("3"));
-	//		// State Tree 루트 트랜지션에 등록한 태그와 동일하게 맞춰줍니다.
-	//		FGameplayTag TransitionTag = FGameplayTag::RequestGameplayTag(FName("Boss.Event.PhaseTransition"));
-
-	//		// SendStateTreeEvent(FGameplayTag EventTag) 함수의 인자 구조를 매핑합니다.
-	//		struct FStateTreeEventParameters
-	//		{
-	//			FGameplayTag EventTag;
-	//		};
-
-	//		FStateTreeEventParameters Params;
-	//		Params.EventTag = TransitionTag;
-
-	//		// 리플렉션으로 함수를 강제 실행합니다.
-	//		FoundComponent->ProcessEvent(SendEventFunc, &Params);
-
-	//		UE_LOG(LogTemp, Warning, TEXT("Successfully bypassed header errors and sent Phase Transition Tag!"));
-	//	}
-	//}
-
-
-
-
 	// 1. 월드 및 기본 방어
 	if (!GetWorld()) return;
 
@@ -403,7 +363,7 @@ void ABossAIController::TriggerPhaseTransition()
 	Params.Tag = TransitionTag;
 	Params.Origin = NAME_None;
 
-	// 💥 최종 실행 (이제 여기서 절대 안 터집니다)
+	// 최종 실행
 	FoundComponent->ProcessEvent(SendEventFunc, &Params);
 
 	UE_LOG(LogTemp, Warning, TEXT("[PhaseTransition] 페이즈 태그를 안전하게 전달했습니다."));
