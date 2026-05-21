@@ -2,85 +2,235 @@
 #include "AI/BossCharacter.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
-#include "BehaviorTree/BehaviorTree.h"
-#include "BehaviorTree/BlackboardComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "GameplayTagContainer.h"
 
 ABossAIController::ABossAIController()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
 	bIsAttaking = false;
+	bIsInSightBoss = false;
 	MontageTime = 0.f;
 	BossCharacter = nullptr;
 	PlayerCharacter = nullptr;
-
-	Blackboard = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
+	bIsCanWalk = false;
+	BossXYSpeed = 0.f;
+	Distance = 0.f;
+	PhaseTwoJumpRandomIndex = 1;
+	PhaseThreeJumpRandomIndex = 1;
 }
 
 void ABossAIController::BeginPlay()
 {
-	PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	Super::BeginPlay();
+	
 }
 
 void ABossAIController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
 	if (!PlayerCharacter || !BossCharacter)
 	{
 		return;
 	}
 
+	FVector BossrVelocity = BossCharacter->GetCharacterMovement()->Velocity;
+	BossXYSpeed = BossrVelocity.Size2D();
+	if (BossXYSpeed > 0)
+	{
+		bIsCanWalk = true;
+	}
+	else 
+	{
+		bIsCanWalk = false;
+	}
+
+	EMovementMode MovementMode = BossCharacter->GetCharacterMovement()->MovementMode;
+	UE_LOG(LogTemp, Warning, TEXT("MovementMode: %s"), *UEnum::GetValueAsString(MovementMode));
+
 	FVector BossLocation = BossCharacter->GetActorLocation();
 	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
-	float Distance = FVector::Dist(BossLocation, PlayerLocation);
+	Distance = FVector::Dist(BossLocation, PlayerLocation);
+	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, FString::Printf(TEXT("bIsInSightBoss: %d, bIsAttaking: %d, C: %f"), bIsInSightBoss, bIsAttaking, MontageTime));
 
-	// ∫Ì∑¢∫∏µÂø° ∞™ ¿˙¿Â
-	Blackboard->SetValueAsFloat(BBKeys_Boss::DistanceToPlayer, Distance);
-	Blackboard->SetValueAsBool(BBKeys_Boss::bIsInSight, false);
-
-	if (Distance <= 150.f)
+	if (Distance <= 350.f)
 	{
-		bool bIsInSightBoss = IsCanAttackSight();
-		// π¸¿ß≥ªø° µÈæÓø‘∞Ì Ω√æﬂæ»ø° ¿÷¿∏∏È True∞™¿ª ∫Ì∑¢∫∏µÂø° ¿¸¥ﬁ«ÿº≠ BTTask_Attack Ω««‡
-		if (bIsAttaking)
+		bIsInSightBoss = IsCanAttackSight();
+		
+		if (!bIsAttaking)// Î≤îÏúÑÎÇ¥Ïóê Îì§Ïñ¥ÏôîÏßÄÎßå ÏãúÏïºÎÇ¥Ïóê ÏóÜÎäî Í≤ΩÏö∞ ÌîåÎ†àÏù¥Ïñ¥Î•º Ìñ•Ìï¥ ÌöåÏ†ÑÏùÑ Ìï¥Ï§ÄÎã§.
 		{
-			Blackboard->SetValueAsBool(BBKeys_Boss::bIsInSight, bIsInSightBoss);
+			UE_LOG(LogTemp, Warning, TEXT("TurnToPlayer"));
+			TurnToPlayer(DeltaSeconds);
 		}
-		if (!bIsAttaking)// π¸¿ß≥ªø° µÈæÓø‘¡ˆ∏∏ Ω√æﬂ≥ªø° æ¯¥¬ ∞ÊøÏ «√∑π¿ÃæÓ∏¶ «‚«ÿ »∏¿¸¿ª «ÿ¡ÿ¥Ÿ.
-		{
-			FRotator BossRotation = BossCharacter->GetActorRotation();
-			FVector BossToPlayerDirection = PlayerLocation - BossLocation;
-			FRotator TargetRotation = BossToPlayerDirection.Rotation();
-			FRotator NewRotaion = BossRotation;
-
-			NewRotaion.Yaw = FMath::RInterpTo(BossRotation, TargetRotation, DeltaSeconds, 5.f).Yaw;
-			BossCharacter->SetActorRotation(NewRotaion);
-		}
-		UE_LOG(LogTemp, Warning, TEXT("A: %d, B: %d, C: %f"), bIsInSightBoss, bIsAttaking, Distance);
 	}
+	else
+	{
+		bIsInSightBoss = false;
+
+		if (BossCharacter->BossPhase == EBossPhase::Phase2)
+		{
+			PhaseTwoJumpRandomIndex = FMath::RandRange(0, 4); // 1/5 ÌôïÎ•†Î°ú Ï†êÌîÑ Í≥µÍ≤©
+			if (PhaseTwoJumpRandomIndex == 0)
+			{
+				bIsInSightBoss = IsCanJumpAttackSight();
+			}
+		}
+		if (BossCharacter->BossPhase == EBossPhase::Phase3)
+		{
+			PhaseThreeJumpRandomIndex = FMath::RandRange(0, 2); // 1/3 ÌôïÎ•†Î°ú Ï†êÌîÑ Í≥µÍ≤©
+			if (PhaseThreeJumpRandomIndex == 0)
+			{
+				bIsInSightBoss = IsCanJumpAttackSight();
+			}
+		}
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("bIsInSightBoss: %d, bIsAttaking: %d, C: %f"), bIsInSightBoss, bIsAttaking, Distance);
+}
+
+void ABossAIController::TurnToPlayer(float DeltaSeconds)
+{
+	FVector BossLocation = BossCharacter->GetActorLocation();
+	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
+
+	FRotator BossRotation = BossCharacter->GetActorRotation();
+	FVector BossToPlayerDirection = PlayerLocation - BossLocation;
+	FRotator TargetRotation = BossToPlayerDirection.Rotation();
+	FRotator NewRotaion = BossRotation;
+
+	NewRotaion.Yaw = FMath::RInterpTo(BossRotation, TargetRotation, DeltaSeconds, 5.f).Yaw;
+	BossCharacter->SetActorRotation(NewRotaion);
+}
+
+void ABossAIController::BossMoveToActor()
+{
+	BossCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	BossCharacter->GetCharacterMovement()->bCheatFlying = false;
+	MoveToActor(PlayerCharacter, 150.f);
+}
+
+void ABossAIController::BossAttack()
+{
+	if (BossCharacter->BossPhase == EBossPhase::Phase1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Phase1"));
+		UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
+		if (AnimInstance && BossCharacter->AttackMontagePhaseOne.Num() > 0)
+		{
+			int32 RandomIndex = FMath::RandRange(0, BossCharacter->AttackMontagePhaseOne.Num() - 1);
+			MontageTime = AnimInstance->Montage_Play(BossCharacter->AttackMontagePhaseOne[RandomIndex]);
+			StopMovement();
+		}
+	}
+
+	if (BossCharacter->BossPhase == EBossPhase::Phase2)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Phase2"));
+
+		UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
+		if (PhaseTwoJumpRandomIndex == 0)
+		{
+			BossJumpAttack();
+			PhaseTwoJumpRandomIndex = 1;
+		}
+		else 
+		{
+			if (AnimInstance && BossCharacter->AttackMontagePhaseTwoToThree.Num() > 0)
+			{
+				int32 RandomIndex = FMath::RandRange(0, BossCharacter->AttackMontagePhaseTwoToThree.Num() - 1);
+				MontageTime = AnimInstance->Montage_Play(BossCharacter->AttackMontagePhaseTwoToThree[RandomIndex]);
+				StopMovement();
+			}
+		}
+	}
+
+	if (BossCharacter->BossPhase == EBossPhase::Phase3)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Phase3"));
+		
+		UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
+		if (PhaseThreeJumpRandomIndex == 0)
+		{
+			BossJumpAttack();
+			PhaseThreeJumpRandomIndex = 1;
+		}
+		else
+		{
+			if (AnimInstance && BossCharacter->AttackMontagePhaseTwoToThree.Num() > 0)
+			{
+				int32 RandomIndex = FMath::RandRange(0, BossCharacter->AttackMontagePhaseTwoToThree.Num() - 1);
+				MontageTime = AnimInstance->Montage_Play(BossCharacter->AttackMontagePhaseTwoToThree[RandomIndex]);
+				StopMovement();
+			}
+		}
+	}
+}
+
+void ABossAIController::ChangePhaseTwo()
+{
+	UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
+	if (AnimInstance && BossCharacter->ChangePhaseTwo)
+	{
+		MontageTime = AnimInstance->Montage_Play(BossCharacter->ChangePhaseTwo);
+	}
+}
+
+void ABossAIController::ChangePhaseThree()
+{
+	UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
+	if (AnimInstance && BossCharacter->ChangePhaseThree)
+	{
+		MontageTime = AnimInstance->Montage_Play(BossCharacter->ChangePhaseThree);
+	}
+}
+
+void ABossAIController::BossJumpAttack()
+{
+	// FlyingÏùÑ ÏïàÌï¥Ï£ºÎ©¥ Ï†êÌîÑ Ï§ÄÎπÑÏûêÏÑ∏(zÏ∂ïÏù¥ ÏÇ¥Ïßù ÎÇ¥Î†§Í∞îÎã§Í∞Ä Ïò¨ÎùºÏò§Í∏∞ ÎïåÎ¨∏Ïóê Ï∞©ÏßÄÌñàÎã§Í≥† ÌåêÏ†ï)ÏóêÏÑú
+	// GroundÎ°ú Ïù∏ÏãùÌï¥Î≤ÑÎ¶¨Í≥† Ï∫°ÏäêÏù¥ ÎïÖÏóê Í≥†Ï†ïÎê®
+	BossCharacter->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	BossCharacter->GetCharacterMovement()->bCheatFlying = true;
+	UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
+
+	if (Distance < 250.f)
+	{
+		if (AnimInstance && BossCharacter->JumpAttackMontageOne)
+		{
+			MontageTime = AnimInstance->Montage_Play(BossCharacter->JumpAttackMontageOne);
+		}
+	}
+	else if (Distance < 750.f)
+	{
+		if (AnimInstance && BossCharacter->JumpAttackMontageTwo)
+		{
+			MontageTime = AnimInstance->Montage_Play(BossCharacter->JumpAttackMontageTwo);
+		}
+	}
+	else if (Distance < 1250.f)
+	{
+		if (AnimInstance && BossCharacter->JumpAttackMontageThree)
+		{
+			MontageTime = AnimInstance->Montage_Play(BossCharacter->JumpAttackMontageThree);
+		}
+	}
+	else
+	{
+		if (AnimInstance && BossCharacter->JumpAttackMontageFour)
+		{
+			MontageTime = AnimInstance->Montage_Play(BossCharacter->JumpAttackMontageFour);
+		}
+	}
+	
 }
 
 void ABossAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	// Possess«“ ∂ß 
+	PlayerCharacter = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	BossCharacter = Cast<ABossCharacter>(GetPawn());
 
-	// BP ¿⁄Ωƒ ≈¨∑°Ω∫ø°º≠ ø°º¬¿ª «“¥Á«ﬂ¥¬¡ˆ »Æ¿Œ »ƒ Ω««‡
-	if (BTAsset)
-	{
-		// UseBlackboard¥¬ ≥ª∫Œ¿˚¿∏∑Œ Blackboard µ•¿Ã≈Õ ø°º¬¿ª ±‚π›¿∏∑Œ √ ±‚»≠
-		if (BTAsset->BlackboardAsset)
-		{
-			Blackboard->InitializeBlackboard(*(BTAsset->BlackboardAsset));
-		}
-		RunBehaviorTree(BTAsset);
-	}
-
-	// BeginPlay()ø° ≥÷¿∏∏È ¡ª∫Ò∏¶ ¡˜¡¢ πËƒ°«“ ∂© µ«¡ˆ∏∏ Ω∫∆˘«“ ∂© æ»µ (Possess µ«±‚ ¿¸ø° Ω««‡¿ª «ÿº≠ BBø° æ»µÈæÓ∞®)
-	// BTTask_MoveAndFaceTargetø°º≠ æµ BB ø¿∫Í¡ß∆Æ ∫Øºˆø° ∞™ ≥÷æÓ¡‹
-	Blackboard->SetValueAsObject(BBKeys_Boss::TargetActor, PlayerCharacter);
 }
 
 bool ABossAIController::IsCanAttackSight()
@@ -90,11 +240,11 @@ bool ABossAIController::IsCanAttackSight()
 		return false;
 	}
 
-	// ¡ª∫Ò¿« ¡§∏È ¥‹¿ß πÊ«‚ ∫§≈Õ
+	// Î≥¥Ïä§Ïùò Ï†ïÎ©¥ Îã®ÏúÑ Î∞©Ìñ• Î≤°ÌÑ∞
 	FVector BossFowardDirection = BossCharacter->GetActorForwardVector();
 	BossFowardDirection.Z = 0.f;
 	BossFowardDirection.Normalize();
-	// ¡ª∫Ò - «√∑π¿ÃæÓ ¥‹¿ß πÊ«‚ ∫§≈Õ
+	// Î≥¥Ïä§ - ÌîåÎ†àÏù¥Ïñ¥ Îã®ÏúÑ Î∞©Ìñ• Î≤°ÌÑ∞
 	FVector BossLocation = BossCharacter->GetActorLocation();
 	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
 	FVector BossToPlayerDirection = PlayerLocation - BossLocation;
@@ -103,14 +253,16 @@ bool ABossAIController::IsCanAttackSight()
 
 	float DotValue = FVector::DotProduct(BossFowardDirection, BossToPlayerDirection);
 
-	// Ω√æﬂæ»ø° µÈæÓø‘¿∏∏È ∞¯∞›¡ﬂ¿∏∑Œ ªÛ≈¬∏¶ πŸ≤Ÿ∞Ì(bIsAttaking) æ÷¥œ∏ﬁ¿Ãº« ¿Áª˝ Ω√∞£ µ⁄ø° ∞¯∞›¿Ã ≥°≥µ¥Ÿ∞Ì πŸ≤„¡‹
-	if (DotValue >= 0.999f)
+	if (DotValue >= 0.900f)
 	{
+		// ÏãúÏïºÏïàÏóê Îì§Ïñ¥ÏôîÏúºÎ©¥ Í≥µÍ≤©Ï§ëÏúºÎ°ú ÏÉÅÌÉúÎ•º Î∞îÍæ∏Í≥†(bIsAttaking) Ïï†ÎãàÎ©îÏù¥ÏÖò Ïû¨ÏÉù ÏãúÍ∞Ñ Îí§Ïóê Í≥µÍ≤©Ïù¥ ÎÅùÎÇ¨Îã§Í≥† Î∞îÍøîÏ§å
 		bIsAttaking = true;
+		UE_LOG(LogTemp, Warning, TEXT("Attacking1"));
 		GetWorldTimerManager().SetTimer(
 			AttackTimer,
 			[this]()
 			{
+				UE_LOG(LogTemp, Warning, TEXT("Attacking2"));
 				bIsAttaking = false;
 			},
 			MontageTime,
@@ -118,7 +270,88 @@ bool ABossAIController::IsCanAttackSight()
 		);
 		return true;
 	}
+	
+	return false;
+}
+
+bool ABossAIController::IsCanJumpAttackSight()
+{
+	if (!PlayerCharacter || !BossCharacter)
+	{
+		return false;
+	}
+
+	// Î≥¥Ïä§Ïùò Ï†ïÎ©¥ Îã®ÏúÑ Î∞©Ìñ• Î≤°ÌÑ∞
+	FVector BossFowardDirection = BossCharacter->GetActorForwardVector();
+	BossFowardDirection.Z = 0.f;
+	BossFowardDirection.Normalize();
+	// Î≥¥Ïä§ - ÌîåÎ†àÏù¥Ïñ¥ Îã®ÏúÑ Î∞©Ìñ• Î≤°ÌÑ∞
+	FVector BossLocation = BossCharacter->GetActorLocation();
+	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
+	FVector BossToPlayerDirection = PlayerLocation - BossLocation;
+	BossToPlayerDirection.Z = 0.f;
+	BossToPlayerDirection.Normalize();
+
+	float DotValue = FVector::DotProduct(BossFowardDirection, BossToPlayerDirection);
+
+	if (DotValue >= 0.999f)
+	{
+		// ÏãúÏïºÏïàÏóê Îì§Ïñ¥ÏôîÏúºÎ©¥ Í≥µÍ≤©Ï§ëÏúºÎ°ú ÏÉÅÌÉúÎ•º Î∞îÍæ∏Í≥†(bIsAttaking) Ïï†ÎãàÎ©îÏù¥ÏÖò Ïû¨ÏÉù ÏãúÍ∞Ñ Îí§Ïóê Í≥µÍ≤©Ïù¥ ÎÅùÎÇ¨Îã§Í≥† Î∞îÍøîÏ§å
+		bIsAttaking = true;
+		UE_LOG(LogTemp, Warning, TEXT("JumpAtacking1"));
+		GetWorldTimerManager().SetTimer(
+			AttackTimer,
+			[this]()
+			{
+				UE_LOG(LogTemp, Warning, TEXT("JumpAttacking2"));
+				bIsAttaking = false;
+			},
+			MontageTime,
+			false
+		);
+		return true;
+	}
+
 	return false;
 }
 
 
+void ABossAIController::TriggerPhaseTransition()
+{
+	// 2. ÌÅ¥ÎûòÏä§ Ïù¥Î¶Ñ(StateTreeAIComponent)ÏúºÎ°ú Î∏îÎ£®ÌîÑÎ¶∞Ìä∏Ïóê Ï∂îÍ∞ÄÎêú Ïª¥Ìè¨ÎÑåÌä∏Î•º ÏïàÏ†ÑÌïòÍ≤å Í≤ÄÏÉâÌï©ÎãàÎã§.
+	UClass* TargetClass = StaticLoadClass(UActorComponent::StaticClass(), nullptr, TEXT("/Script/GameplayStateTreeModule.StateTreeAIComponent"));
+	if (!TargetClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("1"));
+		return;
+	}
+	
+	UActorComponent* FoundComponent = GetComponentByClass(TargetClass);
+
+	if (FoundComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("2"));
+		// 3. ÎÇ¥Î∂Ä Ìï®ÏàòÏù∏ "SendStateTreeEvent"Î•º Ïù¥Î¶ÑÏúºÎ°ú ÏßÅÏ†ë Ï∞æÏïÑÏòµÎãàÎã§.
+		UFunction* SendEventFunc = FoundComponent->GetClass()->FindFunctionByName(TEXT("SendStateTreeEvent"));
+		if (SendEventFunc)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("3"));
+			// State Tree Î£®Ìä∏ Ìä∏ÎûúÏßÄÏÖòÏóê Îì±Î°ùÌïú ÌÉúÍ∑∏ÏôÄ ÎèôÏùºÌïòÍ≤å ÎßûÏ∂∞Ï§çÎãàÎã§.
+			FGameplayTag TransitionTag = FGameplayTag::RequestGameplayTag(FName("Boss.Event.PhaseTransition"));
+
+			// SendStateTreeEvent(FGameplayTag EventTag) Ìï®ÏàòÏùò Ïù∏Ïûê Íµ¨Ï°∞Î•º Îß§ÌïëÌï©ÎãàÎã§.
+			struct FStateTreeEventParameters
+			{
+				FGameplayTag EventTag;
+			};
+
+			FStateTreeEventParameters Params;
+			Params.EventTag = TransitionTag;
+
+			// Î¶¨ÌîåÎ†âÏÖòÏúºÎ°ú Ìï®ÏàòÎ•º Í∞ïÏ†ú Ïã§ÌñâÌï©ÎãàÎã§.
+			FoundComponent->ProcessEvent(SendEventFunc, &Params);
+
+			UE_LOG(LogTemp, Warning, TEXT("Successfully bypassed header errors and sent Phase Transition Tag!"));
+		}
+	}
+}

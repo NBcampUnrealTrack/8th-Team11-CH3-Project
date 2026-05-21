@@ -1,13 +1,20 @@
 #include "AI/BossCharacter.h"
+#include "AI/BossAIController.h"
 #include "Combat/HealthComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
 ABossCharacter::ABossCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+
+	BossAI = nullptr;
+	BossPhase = EBossPhase::Phase1;
+	CurrentPhase = 0;
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+	BossMaxHealth = HealthComponent->GetMaxHealth();
+	BossCurrentHealth = BossMaxHealth;
 
 	GetMesh()->AddRelativeLocation(FVector(0.f, 0.f, -90.f));
 	GetMesh()->AddRelativeRotation(FRotator(0.f, -90.f, 0.f));
@@ -15,13 +22,13 @@ ABossCharacter::ABossCharacter()
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (MoveComp)
 	{
-		MoveComp->MaxWalkSpeed = 50.f;
+		MoveComp->MaxWalkSpeed = 500.f;
 
-		// È¸Àü ¼Óµµ (Yaw) Á¶Àı - ¶Ò¶Ò ²÷±â´Â Çö»ó ¹æÁö
-		MoveComp->RotationRate = FRotator(0.0f, 180.0f, 0.0f); // ¼öÄ¡°¡ ³·À»¼ö·Ï È¸ÀüÀÌ ºÎµå·¯¿öÁü
-		// ÀÌµ¿ ¹æÇâÀ¸·Î ÀÚµ¿ È¸Àü ¼³Á¤
+		// íšŒì „ ì†ë„ (Yaw) ì¡°ì ˆ - ëšëš ëŠê¸°ëŠ” í˜„ìƒ ë°©ì§€
+		MoveComp->RotationRate = FRotator(0.0f, 180.0f, 0.0f); // ìˆ˜ì¹˜ê°€ ë‚®ì„ìˆ˜ë¡ íšŒì „ì´ ë¶€ë“œëŸ¬ì›Œì§
+		// ì´ë™ ë°©í–¥ìœ¼ë¡œ ìë™ íšŒì „ ì„¤ì •
 		MoveComp->bOrientRotationToMovement = true;
-		// ÄÁÆ®·Ñ·¯ È¸Àü »ç¿ë ¾È ÇÔ (Ä³¸¯ÅÍ°¡ È× µ¹¾Æ°¡´Â °Í ¹æÁö)
+		// ì»¨íŠ¸ë¡¤ëŸ¬ íšŒì „ ì‚¬ìš© ì•ˆ í•¨ (ìºë¦­í„°ê°€ íœ™ ëŒì•„ê°€ëŠ” ê²ƒ ë°©ì§€)
 		bUseControllerRotationYaw = false;
 	}
 }
@@ -30,12 +37,42 @@ void ABossCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	BossAI = Cast<ABossAIController>(GetController());
 }
 
 void ABossCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (BossCurrentHealth > 0.7f * BossMaxHealth && CurrentPhase == 0)
+	{
+		CurrentPhase = 1;
+		BossPhase = EBossPhase::Phase1;
+		if (BossAI)
+		{
+			BossAI->TriggerPhaseTransition();
+		}
+	}
+	else if (BossCurrentHealth <= 0.7f * BossMaxHealth && BossCurrentHealth > 0.3f * BossMaxHealth && CurrentPhase == 1)
+	{
+		CurrentPhase = 2;
+		GetCharacterMovement()->MaxWalkSpeed = 500.f;
+		BossPhase = EBossPhase::Phase2;
+		if (BossAI)
+		{
+			BossAI->TriggerPhaseTransition();
+		}
+	}
+	else if (BossCurrentHealth <= 0.3f * BossMaxHealth && CurrentPhase == 2)
+	{
+		CurrentPhase = 3;
+		GetCharacterMovement()->MaxWalkSpeed = 900.f;
+		BossPhase = EBossPhase::Phase3;
+		if (BossAI)
+		{
+			BossAI->TriggerPhaseTransition();
+		}
+	}
 }
 
 void ABossCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

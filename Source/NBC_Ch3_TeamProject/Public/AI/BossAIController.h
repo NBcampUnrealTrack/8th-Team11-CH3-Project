@@ -6,46 +6,59 @@
 
 class ABossCharacter;
 
-// BlackBoard º¯¼ö¸¦ ¾ÈÀüÇÏ°Ô ´ã´Â ³×ÀÓ º¯¼ö¸ğÀ½
-namespace BBKeys_Boss
-{
-	const FName DistanceToPlayer = TEXT("DistanceToPlayer");
-	const FName bIsInSight = TEXT("bIsInSight");
-	const FName TargetActor = TEXT("TargetActor");
-}
-
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API ABossAIController : public AAIController
 {
 	GENERATED_BODY()
 	
 public:
-
 	ABossAIController();
 
-	// ¸ùÅ¸ÁÖ ½Ã°£À» ÀúÀåÇÒ º¯¼ö
+	// ëª½íƒ€ì£¼ ì‹œê°„ì„ ì €ì¥í•  ë³€ìˆ˜(STì—ì„œ ì‚¬ìš©)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "STComponent")
 	float MontageTime;
+	// ë³´ìŠ¤ê°€ ì‹œì•¼ì— ìˆëŠ”ì§€ íŒë‹¨(STì—ì„œ ì‚¬ìš©)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "STComponent")
+	bool bIsInSightBoss;
+	// ê³µê²©ì¤‘ì¸ì§€ íŒë‹¨í•˜ëŠ” ë³€ìˆ˜
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ABPComponent")
+	bool bIsAttaking;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ABPComponent")
+	bool bIsCanWalk;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ABPComponent")
+	float BossXYSpeed;
+	float Distance;
+	int32 PhaseTwoJumpRandomIndex;
+	int32 PhaseThreeJumpRandomIndex;
+	
 
-	// BT ¿¡¼Â º¯¼ö(ºí·çÇÁ¸°Æ®¿¡¼­ ¼³Á¤)
-	UPROPERTY(EditAnywhere)
-	TObjectPtr<UBehaviorTree> BTAsset;
+	UFUNCTION(BlueprintCallable)
+	void BossMoveToActor();
+	UFUNCTION(BlueprintCallable)
+	void BossAttack();
+	UFUNCTION(BlueprintCallable)
+	void ChangePhaseTwo();
+	UFUNCTION(BlueprintCallable)
+	void ChangePhaseThree();
+	void BossJumpAttack();
+	void TriggerPhaseTransition();
+
+protected:
 
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 
 	bool IsCanAttackSight();
-
-private:
-
-	// °ø°İÁßÀÎÁö ÆÇ´ÜÇÏ´Â º¯¼ö
-	bool bIsAttaking;
-	// °ø°İ ¸ğ¼Çµ¿¾È ½ÇÇà µÉ Å¸ÀÌ¸ÓÇÚµé
+	bool IsCanJumpAttackSight();
+	void TurnToPlayer(float DeltaSeconds);
+	
+	// ê³µê²© ëª¨ì…˜ë™ì•ˆ ì‹¤í–‰ ë  íƒ€ì´ë¨¸í•¸ë“¤
 	FTimerHandle AttackTimer;
 
 	UPROPERTY()
 	TObjectPtr<ACharacter> PlayerCharacter;
-
 	UPROPERTY()
 	TObjectPtr<ABossCharacter> BossCharacter;
+	
 };
