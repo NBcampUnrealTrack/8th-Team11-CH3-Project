@@ -8,6 +8,7 @@
 
 class ABaseWeapon;
 class APlayerCharacter;
+class UWeaponConfig; 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWeaponRewardChoicesGenerated);
 
@@ -60,6 +61,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Reward")
 	FText GetChoiceDisplayName(int32 ChoiceIndex) const;
+	
+	UFUNCTION(BlueprintCallable, Category = "Reward")
+	void ApplyWeaponConfigReward(UWeaponConfig* Config);
 
 protected:
 	APlayerCharacter* GetOwnerPlayer() const;
@@ -67,5 +71,5 @@ protected:
 	ABaseWeapon* FindOwnedWeaponByClass(TSubclassOf<ABaseWeapon> WeaponClass) const;
 
 	void ApplyUpgradeToWeapon(ABaseWeapon* Weapon);
-	
+
 };
