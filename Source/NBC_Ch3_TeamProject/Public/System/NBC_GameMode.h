@@ -80,4 +80,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Game Flow | Spawn")
 	TSubclassOf<AActor> PortalClass;
 
+private:
+	void InitializeLoadedGame(APlayerController* TargetPlayer);
 };

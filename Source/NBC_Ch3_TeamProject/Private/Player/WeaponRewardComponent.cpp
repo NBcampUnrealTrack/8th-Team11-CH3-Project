@@ -3,6 +3,7 @@
 #include "Player/BaseWeapon.h"
 #include "Combat/WeaponConfig.h"
 #include "Player/PlayerCharacter.h"
+#include "System/NBC_GameInstance.h"
 
 
 
@@ -181,4 +182,61 @@ void UWeaponRewardComponent::ApplyWeaponConfigReward(UWeaponConfig* Config)
 
 	ApplyUpgradeToWeapon(CurrentWeapon);
 	OnRewardApplied.Broadcast(CurrentWeapon, true);
+}
+
+// GameInstance에 무기 저장 
+void UWeaponRewardComponent::SaveWeaponsToInstance()
+{
+	APlayerCharacter* Player = GetOwnerPlayer();
+	if (!Player) return;
+
+	UNBC_GameInstance* GI = Cast<UNBC_GameInstance>(GetWorld()->GetGameInstance());
+	if (!GI) return;
+
+	GI->ClearSavedData();
+
+	TArray<TSubclassOf<ABaseWeapon>> TempClasses;
+	for (ABaseWeapon* WeaponActor : Player->WeaponInventory)
+	{
+		if (WeaponActor)
+		{
+			TempClasses.Add(WeaponActor->GetClass());
+		}
+	}
+
+	GI->SetSavedWeaponClasses(TempClasses);
+	GI->SetSavedCurrentWeaponIndex(Player->CurrentWeaponIndex);
+
+	UE_LOG(LogTemp, Warning, TEXT("Weapon Saved"));
+}
+
+// 무기 로드 
+void UWeaponRewardComponent::LoadWeaponsFromInstance()
+{
+	APlayerCharacter* Player = GetOwnerPlayer();
+	if (!Player) return;
+
+	UNBC_GameInstance* GI = Cast<UNBC_GameInstance>(GetWorld()->GetGameInstance());
+	if (!GI || GI->GetSavedWeaponClasses().IsEmpty()) return;
+
+	Player->WeaponInventory.Empty();
+	Player->CurrentWeaponIndex = -1;
+	
+	for (TSubclassOf<ABaseWeapon> WeaponClass : GI->GetSavedWeaponClasses())
+	{
+		if (!WeaponClass) continue;
+		Player->AddWeaponToInventory(WeaponClass);
+	}
+
+	int32 TargetIndex = GI->GetSavedCurrentWeaponIndex();
+	if (Player->WeaponInventory.IsValidIndex(TargetIndex))
+	{
+		Player->SwitchWeapon(TargetIndex);
+	}
+	else if (!Player->WeaponInventory.IsEmpty())
+	{
+		Player->SwitchWeapon(0);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Weapon Loaded"));
 }
