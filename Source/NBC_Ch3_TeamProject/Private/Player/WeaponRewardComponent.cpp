@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "Player/WeaponRewardComponent.h"
 #include "Player/BaseWeapon.h"
+#include "Combat/WeaponConfig.h"
 #include "Player/PlayerCharacter.h"
 
 
@@ -139,6 +140,40 @@ void UWeaponRewardComponent::ApplyWeaponConfigReward(UWeaponConfig* Config)
 	APlayerCharacter* Player = GetOwnerPlayer();
 	if (!Player) return;
 
+	// 무기가 없으면 풀에서 매칭되는 무기 획득 
+	if (Player->WeaponInventory.IsEmpty())
+	{
+		TSubclassOf<ABaseWeapon> WeaponToGive = nullptr;
+
+		// RewardWeaponPool에서 Config의 WeaponClass(Rifle/Shotgun/Pistol)와 일치하는 무기 탐색
+		for (TSubclassOf<ABaseWeapon> WeaponClass : RewardWeaponPool)
+		{
+			if (!WeaponClass) continue;
+
+			const ABaseWeapon* DefaultWeapon = WeaponClass->GetDefaultObject<ABaseWeapon>();
+			if (DefaultWeapon && DefaultWeapon->WeaponConfig
+				&& DefaultWeapon->WeaponConfig->WeaponClass == Config->WeaponClass)
+			{
+				WeaponToGive = WeaponClass;
+				break;
+			}
+		}
+
+		if (!WeaponToGive) return; // 매칭 무기 없음
+
+		const int32 NewIndex = Player->WeaponInventory.Num();
+		if (Player->AddWeaponToInventory(WeaponToGive))
+		{
+			ABaseWeapon* NewWeapon = Player->WeaponInventory.IsValidIndex(NewIndex)
+				? Player->WeaponInventory[NewIndex] : nullptr;
+
+			Player->SwitchWeapon(NewIndex);
+			OnRewardApplied.Broadcast(NewWeapon, false);
+		}
+		return;
+	}
+
+	// 무기가 있으면 현재 무기 업그레이드
 	if (!Player->WeaponInventory.IsValidIndex(Player->CurrentWeaponIndex)) return;
 
 	ABaseWeapon* CurrentWeapon = Player->WeaponInventory[Player->CurrentWeaponIndex];
