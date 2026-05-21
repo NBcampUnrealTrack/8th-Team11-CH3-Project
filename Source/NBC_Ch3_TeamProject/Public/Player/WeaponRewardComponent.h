@@ -62,7 +62,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Reward")
 	FText GetChoiceDisplayName(int32 ChoiceIndex) const;
 	
-	UFUNCTION(BlueprintPure, Category = "Reward")
+	UFUNCTION(BlueprintCallable, Category = "Reward")
 	void ApplyWeaponConfigReward(UWeaponConfig* Config);
 
 protected:
@@ -71,5 +71,5 @@ protected:
 	ABaseWeapon* FindOwnedWeaponByClass(TSubclassOf<ABaseWeapon> WeaponClass) const;
 
 	void ApplyUpgradeToWeapon(ABaseWeapon* Weapon);
-	
+
 };
