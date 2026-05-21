@@ -21,6 +21,7 @@ void ANBC_GameMode::BeginPlay()
 	Super::BeginPlay();
 
 	WaveSpawnManager->SpawnZombie();
+	WaveSpawnManager->SpawnBoss();
 }
  
 void ANBC_GameMode::PostLogin(APlayerController* NewPlayer)

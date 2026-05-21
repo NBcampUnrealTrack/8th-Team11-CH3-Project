@@ -1,8 +1,10 @@
 #include "AI/WaveSpawnManager.h"
 #include "AI/ZombieSpawnVolume.h"
+#include "AI/BossSpawnVolume.h"
 #include "System/NBC_GameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "AI/BossSpawnRow.h"
 
 UWaveSpawnManager::UWaveSpawnManager()
 {
@@ -65,6 +67,46 @@ void UWaveSpawnManager::SpawnZombie()
 			}
 		}
 	
+	}
+}
+
+void UWaveSpawnManager::SpawnBoss()
+{
+	if (!BossDataTable || !GetWorld())
+	{
+		return;
+	}
+
+	// 보스 데이터 테이블에서 딱 하나의 Row만 가져오기
+	// 보스 데이터가 들어있는 행의 이름을 직접 찾음
+	static const FString ContextString(TEXT("No Boss Data"));
+	FBossSpawnRow* BossRow = BossDataTable->FindRow<FBossSpawnRow>(FName("Boss"), ContextString);
+
+	// 이름 대신 AllRows 이용
+	//if (!BossRow)
+	//{
+	//	TArray<FBossSpawnRow*> AllBossRows;
+	//	BossDataTable->GetAllRows(ContextString, AllBossRows);
+	//	if (!AllBossRows.IsEmpty())
+	//	{
+	//		BossRow = AllBossRows[0];
+	//	}
+	//}
+
+	TArray<AActor*> FoundVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ABossSpawnVolume::StaticClass(), FoundVolumes);
+
+	if (FoundVolumes.IsEmpty())
+	{
+		return;
+	}
+
+	ABossSpawnVolume* TargetVolume = Cast<ABossSpawnVolume>(FoundVolumes[0]);
+	UClass* BossClass = BossRow->BossClass.Get();
+
+	if (TargetVolume && BossClass)
+	{
+		TargetVolume->BossZombie(BossClass);
 	}
 }
 
