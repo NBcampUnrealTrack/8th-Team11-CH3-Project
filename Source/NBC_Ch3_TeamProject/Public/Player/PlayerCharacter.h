@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -10,6 +10,7 @@ class UCameraComponent;
 class USpringArmComponent;
 class ABaseWeapon;
 class UWeaponComponent;
+class UHealthComponent;
 
 struct FInputActionValue;
 
@@ -31,9 +32,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Component")
 	UWeaponComponent* WeaponComponent;
 
-	float MaxHealth;
-
-	float CurrentHealth;
+	// [장식 추가] 플레이어 체력 컴포넌트 (좀비/보스 피격 진입점)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	TObjectPtr<UHealthComponent> HealthComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed;
@@ -152,4 +153,8 @@ public:
 	
 	UFUNCTION(BlueprintCallable)
 	bool AddWeaponToInventory(TSubclassOf<ABaseWeapon> WeaponClass);
+
+	// [장식 추가] HealthComponent::OnDeath 바인딩용 사망 처리 핸들러
+	UFUNCTION()
+	void OnPlayerDeath();
 };
