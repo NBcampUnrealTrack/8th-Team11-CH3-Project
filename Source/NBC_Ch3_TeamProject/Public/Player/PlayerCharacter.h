@@ -157,4 +157,7 @@ public:
 	// [장식 추가] HealthComponent::OnDeath 바인딩용 사망 처리 핸들러
 	UFUNCTION()
 	void OnPlayerDeath();
+	
+	UFUNCTION(BlueprintCallable, Category = "Reward")
+	void IncreaseMovementSpeed(float Amount);
 };
