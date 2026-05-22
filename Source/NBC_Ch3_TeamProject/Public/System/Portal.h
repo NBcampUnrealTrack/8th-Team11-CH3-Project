@@ -25,6 +25,11 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	UStaticMeshComponent* PortalMesh;
 
+
+	// 시작 레벨 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level")
+	FName StartLevel;
+
 	// [장식 수정] 단일 TargetLevelName → 노멀/보상/보스 레벨 분기 멤버로 교체
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Level")
 	FName NormalLevelName;
