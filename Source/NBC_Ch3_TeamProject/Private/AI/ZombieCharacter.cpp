@@ -25,7 +25,7 @@ AZombieCharacter::AZombieCharacter()
 	MeshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeshComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 	MeshComp->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Block);
-	MeshComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	MeshComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 	MeshComp->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	MeshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 	MeshComp->SetCollisionResponseToChannel(ECC_Weapon, ECR_Block);

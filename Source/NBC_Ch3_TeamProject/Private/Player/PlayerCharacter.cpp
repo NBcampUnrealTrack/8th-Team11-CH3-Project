@@ -626,6 +626,17 @@ void APlayerCharacter::OnPlayerDeath()
 	}
 }
 
+void APlayerCharacter::IncreaseMovementSpeed(float Amount)
+{
+	if (Amount <= 0.0f) return;
+
+	UCharacterMovementComponent* Movement = GetCharacterMovement();
+	if (!Movement) return;
+
+	Movement->MaxWalkSpeed += Amount;
+	Movement->MaxWalkSpeedCrouched += Amount * 0.5f; // 앉기 속도도 같이 증가
+}
+
 bool APlayerCharacter::AddWeaponToInventory(TSubclassOf<ABaseWeapon> WeaponClass)
 {
 	if (!WeaponClass || !GetWorld()) return false;

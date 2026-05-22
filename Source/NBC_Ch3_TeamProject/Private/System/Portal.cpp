@@ -72,6 +72,10 @@ void APortal::OnPortalOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other
 			//	*NormalLevelName.ToString(),
 			//	*RewardLevelName.ToString(),
 			//	*BossLevelName.ToString());
+			if (GI->GetNormalLevelsCleared() == 0) {
+				NextLevel = StartLevel;
+				GI->IncNormalLevelsCleared();
+			}
 
 			if (!GI->IsInRewardLevel())
 			{

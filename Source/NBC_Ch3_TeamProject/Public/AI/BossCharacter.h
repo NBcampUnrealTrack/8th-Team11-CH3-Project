@@ -5,6 +5,7 @@
 #include "BossCharacter.generated.h"
 
 class UHealthComponent;
+class UHitReactComponent;
 class UAnimMontage;
 class ABossAIController;
 
@@ -27,6 +28,9 @@ public:
 	// HealthComponent
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
 	TObjectPtr<UHealthComponent> HealthComponent;
+	// HitReactComponent (본 단위 물리 블렌드 피격 반응)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+	TObjectPtr<UHitReactComponent> HitReactComponent;
 
 	// 페이즈1 공격 애니메이션 몽타주들을 담는 배열
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationMontage | Attack")

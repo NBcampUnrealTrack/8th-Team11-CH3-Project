@@ -174,4 +174,7 @@ public:
 private:
 	// [장식 추가] 직전 체력 — 감소(피격)와 회복을 구분하기 위함
 	float LastKnownHealth = 0.f;
+	
+	UFUNCTION(BlueprintCallable, Category = "Reward")
+	void IncreaseMovementSpeed(float Amount);
 };

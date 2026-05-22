@@ -60,7 +60,7 @@ void AZombieAIController::Tick(float DeltaSeconds)
 			NewRotaion.Yaw = FMath::RInterpTo(ZombieRotation, TargetRotation, DeltaSeconds, 5.f).Yaw;
 			ZombieCharacter->SetActorRotation(NewRotaion);
 		}
-		UE_LOG(LogTemp, Warning, TEXT("A: %d, B: %d, C: %f"), bIsInSightZombie, bIsAttaking, Distance);
+		//UE_LOG(LogTemp, Warning, TEXT("A: %d, B: %d, C: %f"), bIsInSightZombie, bIsAttaking, Distance);
 	}
 }
 
