@@ -1,8 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
+
+// [장식 추가] 좀비/플레이어 피격 흐름 디버그용 로그 카테고리. Output Log에서 'LogCombat:'으로 필터링.
+DECLARE_LOG_CATEGORY_EXTERN(LogCombat, Log, All);
 
 // 체력 변동 / 사망 시 HUD·디버프·GameMode가 구독하는 멀티캐스트 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewHealth);

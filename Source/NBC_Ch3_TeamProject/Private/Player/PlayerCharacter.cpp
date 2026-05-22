@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "Player/PlayerCharacter.h"
@@ -6,10 +6,13 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "Combat/WeaponComponent.h"
+#include "Combat/HealthComponent.h"
 #include "Player/PlayerControllerClass.h"
 #include "Player/BaseWeapon.h"
 #include "Player/Rifle.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "System/NBC_GameMode.h"
+#include "Kismet/GameplayStatics.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -29,6 +32,9 @@ APlayerCharacter::APlayerCharacter()
 	SprintSpeed = NormalSpeed * SprintMultiplier;
 	
 	WeaponComponent = CreateDefaultSubobject<UWeaponComponent>(TEXT("WeaponComponent"));
+
+	// [장식 추가] 체력 컴포넌트 부착. BP에서 별도 부착하지 않도록 C++ 단일 소유.
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 	
 	bIsFiring = false;
 	bIsAiming = false;
@@ -53,6 +59,12 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// [장식 추가] 사망 이벤트 구독
+	if (HealthComponent)
+	{
+		HealthComponent->OnDeath.AddDynamic(this, &APlayerCharacter::OnPlayerDeath);
+	}
 
 	CurrentWeaponIndex = -1;
 
@@ -574,6 +586,23 @@ void APlayerCharacter::StopAim()
 {
 	bIsAiming = false;
 	UE_LOG(LogTemp, Warning, TEXT("Aiming End!"));
+}
+
+// [장식 추가] 사망 시 GameMode에 게임오버 전환 위임 + 입력 차단
+void APlayerCharacter::OnPlayerDeath()
+{
+	UE_LOG(LogCombat, Warning, TEXT("[Player] OnPlayerDeath — GameMode에 게임오버 위임"));
+
+	bIsFiring = false;
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		DisableInput(PC);
+	}
+
+	if (ANBC_GameMode* GM = Cast<ANBC_GameMode>(UGameplayStatics::GetGameMode(this)))
+	{
+		GM->OnPlayerDied();
+	}
 }
 
 bool APlayerCharacter::AddWeaponToInventory(TSubclassOf<ABaseWeapon> WeaponClass)
