@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -25,8 +25,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components")
 	UStaticMeshComponent* PortalMesh;
 
+	// [장식 수정] 단일 TargetLevelName → 노멀/보상/보스 레벨 분기 멤버로 교체
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Level")
-	FName TargetLevelName;
+	FName NormalLevelName;
+
+	// [장식 추가] 보상맵 이름
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Level")
+	FName RewardLevelName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Level")
+	FName BossLevelName;
+
+	// 보스로 넘어가기까지 반복할 노멀 레벨 횟수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Level", meta=(ClampMin="1"))
+	int32 NormalLevelLoopCount = 5;
 
 	UFUNCTION()
 	void OnPortalOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
