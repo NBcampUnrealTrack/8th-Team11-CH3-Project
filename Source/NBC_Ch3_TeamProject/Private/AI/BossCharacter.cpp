@@ -1,5 +1,6 @@
 #include "AI/BossCharacter.h"
 #include "AI/BossAIController.h"
+#include "AI/BossAttackComponent.h"
 #include "System/NBC_GameMode.h"
 #include "Combat/HealthComponent.h"
 #include "Combat/HitReactComponent.h"
@@ -18,7 +19,7 @@ ABossCharacter::ABossCharacter()
 
 	HitReactComponent = CreateDefaultSubobject<UHitReactComponent>(TEXT("HitReactComponent"));
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-	
+	BossAttackComponent = CreateDefaultSubobject<UBossAttackComponent>(TEXT("BossAttackComponent"));
 
 	GetMesh()->AddRelativeLocation(FVector(0.f, 0.f, -90.f));
 	GetMesh()->AddRelativeRotation(FRotator(0.f, -90.f, 0.f));
