@@ -48,12 +48,12 @@ void ABossAIController::Tick(float DeltaSeconds)
 	}
 
 	EMovementMode MovementMode = BossCharacter->GetCharacterMovement()->MovementMode;
-	UE_LOG(LogTemp, Warning, TEXT("MovementMode: %s"), *UEnum::GetValueAsString(MovementMode));
+	//UE_LOG(LogTemp, Warning, TEXT("MovementMode: %s"), *UEnum::GetValueAsString(MovementMode));
 
 	FVector BossLocation = BossCharacter->GetActorLocation();
 	FVector PlayerLocation = PlayerCharacter->GetActorLocation();
 	Distance = FVector::Dist(BossLocation, PlayerLocation);
-	GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, FString::Printf(TEXT("bIsInSightBoss: %d, bIsAttaking: %d, C: %f"), bIsInSightBoss, bIsAttaking, MontageTime));
+	//GEngine->AddOnScreenDebugMessage(-1, 0.f, FColor::Red, FString::Printf(TEXT("bIsInSightBoss: %d, bIsAttaking: %d, C: %f"), bIsInSightBoss, bIsAttaking, MontageTime));
 
 	if (Distance <= 350.f)
 	{
@@ -61,7 +61,7 @@ void ABossAIController::Tick(float DeltaSeconds)
 		
 		if (!bIsAttaking)// 범위내에 들어왔지만 시야내에 없는 경우 플레이어를 향해 회전을 해준다.
 		{
-			UE_LOG(LogTemp, Warning, TEXT("TurnToPlayer"));
+			//UE_LOG(LogTemp, Warning, TEXT("TurnToPlayer"));
 			TurnToPlayer(DeltaSeconds);
 		}
 	}
@@ -114,7 +114,7 @@ void ABossAIController::BossAttack()
 {
 	if (BossCharacter->BossPhase == EBossPhase::Phase1)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Phase1"));
+		//UE_LOG(LogTemp, Warning, TEXT("Phase1"));
 		UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
 		if (AnimInstance && BossCharacter->AttackMontagePhaseOne.Num() > 0)
 		{
@@ -126,7 +126,7 @@ void ABossAIController::BossAttack()
 
 	if (BossCharacter->BossPhase == EBossPhase::Phase2)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Phase2"));
+		//UE_LOG(LogTemp, Warning, TEXT("Phase2"));
 
 		UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
 		if (PhaseTwoJumpRandomIndex == 0)
@@ -147,7 +147,7 @@ void ABossAIController::BossAttack()
 
 	if (BossCharacter->BossPhase == EBossPhase::Phase3)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Phase3"));
+		//UE_LOG(LogTemp, Warning, TEXT("Phase3"));
 		
 		UAnimInstance* AnimInstance = BossCharacter->GetMesh()->GetAnimInstance();
 		if (PhaseThreeJumpRandomIndex == 0)
@@ -257,12 +257,12 @@ bool ABossAIController::IsCanAttackSight()
 	{
 		// 시야안에 들어왔으면 공격중으로 상태를 바꾸고(bIsAttaking) 애니메이션 재생 시간 뒤에 공격이 끝났다고 바꿔줌
 		bIsAttaking = true;
-		UE_LOG(LogTemp, Warning, TEXT("Attacking1"));
+		//UE_LOG(LogTemp, Warning, TEXT("Attacking1"));
 		GetWorldTimerManager().SetTimer(
 			AttackTimer,
 			[this]()
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Attacking2"));
+				//UE_LOG(LogTemp, Warning, TEXT("Attacking2"));
 				bIsAttaking = false;
 			},
 			MontageTime,
@@ -298,12 +298,12 @@ bool ABossAIController::IsCanJumpAttackSight()
 	{
 		// 시야안에 들어왔으면 공격중으로 상태를 바꾸고(bIsAttaking) 애니메이션 재생 시간 뒤에 공격이 끝났다고 바꿔줌
 		bIsAttaking = true;
-		UE_LOG(LogTemp, Warning, TEXT("JumpAtacking1"));
+		//UE_LOG(LogTemp, Warning, TEXT("JumpAtacking1"));
 		GetWorldTimerManager().SetTimer(
 			AttackTimer,
 			[this]()
 			{
-				UE_LOG(LogTemp, Warning, TEXT("JumpAttacking2"));
+				//UE_LOG(LogTemp, Warning, TEXT("JumpAttacking2"));
 				bIsAttaking = false;
 			},
 			MontageTime,
