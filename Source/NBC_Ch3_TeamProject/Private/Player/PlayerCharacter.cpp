@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "Combat/WeaponComponent.h"
 #include "Combat/HealthComponent.h"
+#include "Combat/DamageCameraShake.h"
 #include "Player/PlayerControllerClass.h"
 #include "Player/BaseWeapon.h"
 #include "Player/Rifle.h"
@@ -35,6 +36,9 @@ APlayerCharacter::APlayerCharacter()
 
 	// [장식 추가] 체력 컴포넌트 부착. BP에서 별도 부착하지 않도록 C++ 단일 소유.
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
+	// [장식 추가] 피격 카메라 셰이크 기본값. BP에서 다른 셰이크로 덮어쓸 수 있음.
+	DamageCameraShake = UDamageCameraShake::StaticClass();
 	
 	bIsFiring = false;
 	bIsAiming = false;
@@ -60,10 +64,12 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// [장식 추가] 사망 이벤트 구독
+	// [장식 추가] 사망 + 체력 변경 이벤트 구독
 	if (HealthComponent)
 	{
 		HealthComponent->OnDeath.AddDynamic(this, &APlayerCharacter::OnPlayerDeath);
+		HealthComponent->OnHealthChanged.AddDynamic(this, &APlayerCharacter::OnPlayerHealthChanged);
+		LastKnownHealth = HealthComponent->GetCurrentHealth();
 	}
 
 	CurrentWeaponIndex = -1;
@@ -586,6 +592,21 @@ void APlayerCharacter::StopAim()
 {
 	bIsAiming = false;
 	UE_LOG(LogTemp, Warning, TEXT("Aiming End!"));
+}
+
+// [장식 추가] 체력 감소 시 카메라 셰이크 발동 (회복은 무시)
+void APlayerCharacter::OnPlayerHealthChanged(float NewHealth)
+{
+	const bool bDamaged = NewHealth < LastKnownHealth;
+	LastKnownHealth = NewHealth;
+
+	if (bDamaged && DamageCameraShake)
+	{
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			PC->ClientStartCameraShake(DamageCameraShake);
+		}
+	}
 }
 
 // [장식 추가] 사망 시 GameMode에 게임오버 전환 위임 + 입력 차단
