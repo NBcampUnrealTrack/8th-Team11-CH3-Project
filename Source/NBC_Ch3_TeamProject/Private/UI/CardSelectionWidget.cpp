@@ -13,11 +13,11 @@ void UCardSelectionWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	bIsFocusable = true;
+
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	if (PC)
 	{
-		PC->bShowMouseCursor = true;
-
 		FInputModeUIOnly InputMode;
 		InputMode.SetWidgetToFocus(TakeWidget());
 		PC->SetInputMode(InputMode);
