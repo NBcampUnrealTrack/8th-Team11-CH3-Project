@@ -9,6 +9,7 @@ DECLARE_LOG_CATEGORY_EXTERN(LogCombat, Log, All);
 
 // 체력 변동 / 사망 시 HUD·디버프·GameMode가 구독하는 멀티캐스트 델리게이트
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float, NewHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxHealthChanged, float, NewMaxHealth);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
 
 // 액터에 부착하면 체력 관리 + 데미지 수신 + 사망 이벤트를 제공한다.
@@ -56,6 +57,9 @@ public:
 	// 사망 이벤트 — PlayerController/좀비가 구독해 후처리 위임.
 	UPROPERTY(BlueprintAssignable, Category="Events")
 	FOnDeath OnDeath;
+	
+	UPROPERTY(BlueprintAssignable, Category="Events")
+	FOnMaxHealthChanged OnMaxHealthChanged;
 
 protected:
 	virtual void BeginPlay() override;
