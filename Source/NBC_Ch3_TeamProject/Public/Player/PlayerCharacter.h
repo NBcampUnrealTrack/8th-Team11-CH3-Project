@@ -11,6 +11,7 @@ class USpringArmComponent;
 class ABaseWeapon;
 class UWeaponComponent;
 class UHealthComponent;
+class UCameraShakeBase;
 
 struct FInputActionValue;
 
@@ -35,6 +36,14 @@ public:
 	// [장식 추가] 플레이어 체력 컴포넌트 (좀비/보스 피격 진입점)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<UHealthComponent> HealthComponent;
+
+	// [장식 추가] 피격 시 재생할 카메라 셰이크. BP에서 할당.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat|Feedback")
+	TSubclassOf<UCameraShakeBase> DamageCameraShake;
+
+	// [장식 추가] WBP_HUD가 체력바·비네팅 바인딩에 사용하는 getter
+	UFUNCTION(BlueprintPure, Category = "Combat")
+	UHealthComponent* GetHealthComponent() const { return HealthComponent; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed;
@@ -157,4 +166,15 @@ public:
 	// [장식 추가] HealthComponent::OnDeath 바인딩용 사망 처리 핸들러
 	UFUNCTION()
 	void OnPlayerDeath();
+
+	// [장식 추가] HealthComponent::OnHealthChanged 바인딩. 체력 감소 시 카메라 셰이크 발동.
+	UFUNCTION()
+	void OnPlayerHealthChanged(float NewHealth);
+
+private:
+	// [장식 추가] 직전 체력 — 감소(피격)와 회복을 구분하기 위함
+	float LastKnownHealth = 0.f;
+	
+	UFUNCTION(BlueprintCallable, Category = "Reward")
+	void IncreaseMovementSpeed(float Amount);
 };

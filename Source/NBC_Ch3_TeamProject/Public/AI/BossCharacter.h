@@ -6,6 +6,7 @@
 
 class UHealthComponent;
 class UHitReactComponent;
+class UBossAttackComponent;
 class UAnimMontage;
 class ABossAIController;
 
@@ -31,6 +32,8 @@ public:
 	// HitReactComponent (본 단위 물리 블렌드 피격 반응)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<UHitReactComponent> HitReactComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "BossAttack")
+	TObjectPtr<UBossAttackComponent> BossAttackComponent;
 
 	// 페이즈1 공격 애니메이션 몽타주들을 담는 배열
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AnimationMontage | Attack")
