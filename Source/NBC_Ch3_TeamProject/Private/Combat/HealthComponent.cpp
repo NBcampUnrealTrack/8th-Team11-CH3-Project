@@ -40,12 +40,13 @@ void UHealthComponent::Heal(float Amount)
 	OnHealthChanged.Broadcast(CurrentHealth);
 }
 
+// [창욱 수정] 합연산에서 곱연산으로 수정
 void UHealthComponent::IncreaseMaxHealth(float Amount)
 {
 	if (Amount <= 0.0f) return;
 
-	MaxHealth += Amount;
-	CurrentHealth = FMath::Clamp(CurrentHealth + Amount, 0.0f, MaxHealth);
+	MaxHealth *= Amount;
+	CurrentHealth = FMath::Clamp(CurrentHealth * Amount, 0.0f, MaxHealth);
 	OnHealthChanged.Broadcast(CurrentHealth);
 }
 
