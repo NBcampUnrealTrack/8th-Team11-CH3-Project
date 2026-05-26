@@ -4,9 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Player/BaseWeapon.h"
 #include "NBC_GameInstance.generated.h"
-
-class ABaseWeapon;
 
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API UNBC_GameInstance : public UGameInstance
@@ -34,6 +33,23 @@ protected:
 	// [장식 추가] 현재 플레이어가 보상맵에 있는지 여부 (노멀↔보상 토글)
 	UPROPERTY(BlueprintReadOnly, Category = "Save Data", meta = (AllowPrivateAccess = "true"))
 	bool bIsInRewardLevel = false;
+
+	// 플레이어 스탯
+	UPROPERTY(BlueprintReadOnly, Category = "Save Data | Player", meta = (AllowPrivateAccess = "true"))
+	float SavedCurrentHP = -1.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Save Data | Player", meta = (AllowPrivateAccess = "true"))
+	float SavedMaxHP = -1.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Save Data | Player", meta = (AllowPrivateAccess = "true"))
+	float SavedMoveSpeed = -1.0f;
+
+	// 총기 업그레이드 
+	UPROPERTY(BlueprintReadOnly, Category = "Save Data | Weapon", meta = (AllowPrivateAccess = "true"))
+	TMap<TSubclassOf<ABaseWeapon>, float> SavedWeaponFireRates;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Save Data | Weapon", meta = (AllowPrivateAccess = "true"))
+	TMap<TSubclassOf<ABaseWeapon>, int32> SavedWeaponMaxBullets;
 
 public:
 	UFUNCTION(BlueprintPure)
@@ -78,10 +94,38 @@ public:
 	void SetInRewardLevel(bool bInReward) { bIsInRewardLevel = bInReward; }
 
 	// [장식 복원] 게임오버 시 클리어 데이터 초기화 (무기 한정)
+	// [창욱 추가] 플레이어 스탯, 무기 강화 초기화
 	void ClearSavedData();
 
 	// [장식 추가] 진행도(노멀 카운트 + 보상맵 플래그) 초기화. 게임오버/메뉴 복귀 시 호출.
 	UFUNCTION(BlueprintCallable)
 	void ResetProgression();
 
+	// 플레이어 스탯 
+	// CurrentHP
+	float GetSavedCurrentHP() const { return SavedCurrentHP; }
+	void SetSavedCurrentHP(float HP) { SavedCurrentHP = HP; }
+
+	// MaxHP
+	float GetSavedMaxHP() const { return SavedMaxHP; }
+	void SetSavedMaxHP(float MaxHP) { SavedMaxHP = MaxHP; }	
+
+	// Speed
+	float GetSavedMoveSpeed() const { return SavedMoveSpeed; }
+	void SetSavedMoveSpeed(float Speed) { SavedMoveSpeed = Speed; }
+
+	// 특정 무기 클래스에 대해 강화 값 누적 
+	// FireRates
+	float GetSavedFireRate(TSubclassOf<ABaseWeapon> WeaponClass) const
+	{
+		return SavedWeaponFireRates.Contains(WeaponClass) ? SavedWeaponFireRates[WeaponClass] : -1.0f;
+	}
+	void SetSavedFireRate(TSubclassOf<ABaseWeapon> WeaponClass, float FireRate) { SavedWeaponFireRates.FindOrAdd(WeaponClass) = FireRate; }
+
+	// Bullets
+	float GetSavedMaxBullets(TSubclassOf<ABaseWeapon> WeaponClass) const
+	{
+		return SavedWeaponMaxBullets.Contains(WeaponClass) ? SavedWeaponMaxBullets[WeaponClass] : -1.0f;
+	}
+	void SetSavedMaxBullets(TSubclassOf<ABaseWeapon> WeaponClass, int32 Bullets) { SavedWeaponMaxBullets.FindOrAdd(WeaponClass) = Bullets; }
 };
