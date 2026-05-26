@@ -93,54 +93,70 @@ void APlayerCharacter::Tick(float DeltaTime)
     Super::Tick(DeltaTime);
 
     // 발사 처리
-    if (bIsFiring && WeaponComponent)
+    // 발사 처리
+if (bIsFiring && WeaponComponent)
+{
+    if (WeaponInventory.IsValidIndex(CurrentWeaponIndex))
     {
-        if (WeaponInventory.IsValidIndex(CurrentWeaponIndex))
+        ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
+
+        if (CurWeapon && !CurWeapon->bIsOverHeat && !bIsReloading && CurWeapon->CurrentBulletCount > 0)
         {
-            ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
+            //  1. 카메라 중앙에서 먼저 Line Trace
+            APlayerController* PC = Cast<APlayerController>(GetController());
+            FVector CamLoc;
+            FRotator CamRot;
+            PC->GetPlayerViewPoint(CamLoc, CamRot);
 
-            if (CurWeapon && !CurWeapon->bIsOverHeat && !bIsReloading && CurWeapon->CurrentBulletCount > 0)
+            FVector CamTraceEnd = CamLoc + CamRot.Vector() * 10000.0f;
+            FHitResult CamHit;
+            FCollisionQueryParams CamParams;
+            CamParams.AddIgnoredActor(this);
+
+            bool bCamHit = GetWorld()->LineTraceSingleByChannel(
+                CamHit, CamLoc, CamTraceEnd, ECC_Visibility, CamParams);
+
+            //  2. 카메라 트레이스 결과를 목표 지점으로
+            FVector TargetPoint = bCamHit ? CamHit.ImpactPoint : CamTraceEnd;
+
+            //  3. 총구 위치 가져오기
+            FVector MuzzleLocation = GetActorLocation();
+            if (CurWeapon->WeaponMesh && CurWeapon->WeaponMesh->DoesSocketExist(TEXT("Muzzle")))
             {
-                FVector MuzzleLocation = GetActorLocation();
+                MuzzleLocation = CurWeapon->WeaponMesh->GetSocketLocation(TEXT("Muzzle"));
+            }
 
-                if (CurWeapon->WeaponMesh && CurWeapon->WeaponMesh->DoesSocketExist(TEXT("Muzzle")))
-                {
-                    MuzzleLocation = CurWeapon->WeaponMesh->GetSocketLocation(TEXT("Muzzle"));
-                }
+            //  4. 총구 → 목표 지점 방향으로 발사
+            FRotator AimRotation = (TargetPoint - MuzzleLocation).GetSafeNormal().Rotation();
 
-                const FRotator AimRotation = GetControlRotation();
-                float SpreadMult = bIsAiming ? 0.3f : 1.0f;
+            float SpreadMult = bIsAiming ? 0.3f : 1.0f;
+            if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
+            {
+                SpreadMult *= (RifleWeapon->CurrentSpread / RifleWeapon->MinSpread);
+            }
 
+            const bool bFired = WeaponComponent->TryFire(
+                MuzzleLocation,
+                AimRotation,
+                this,
+                SpreadMult
+            );
+
+            if (bFired)
+            {
                 if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
                 {
-                    SpreadMult *= (RifleWeapon->CurrentSpread / RifleWeapon->MinSpread);
-                }
-
-                const bool bFired = WeaponComponent->TryFire(
-                    MuzzleLocation,
-                    AimRotation,
-                    this,
-                    SpreadMult
-                );
-
-                if (bFired)
-                {
-                    if (ARifle* RifleWeapon = Cast<ARifle>(CurWeapon))
-                    {
-                        RifleWeapon->CurrentSpread = FMath::Min(
-                            RifleWeapon->CurrentSpread + RifleWeapon->SpreadIncrease,
-                            RifleWeapon->MaxSpread
-                        );
-                    }
-
-                    CurWeapon->CurrentBulletCount = FMath::Max(
-                        CurWeapon->CurrentBulletCount - 1,
-                        0
+                    RifleWeapon->CurrentSpread = FMath::Min(
+                        RifleWeapon->CurrentSpread + RifleWeapon->SpreadIncrease,
+                        RifleWeapon->MaxSpread
                     );
                 }
+                CurWeapon->CurrentBulletCount = FMath::Max(
+                    CurWeapon->CurrentBulletCount - 1, 0);
             }
         }
     }
+}
 
     // 반동 처리
     if (WeaponComponent)
