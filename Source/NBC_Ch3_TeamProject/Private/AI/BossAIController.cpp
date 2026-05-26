@@ -319,7 +319,10 @@ bool ABossAIController::IsCanJumpAttackSight()
 void ABossAIController::TriggerPhaseTransition()
 {
 	// 1. 월드 및 기본 방어
-	if (!GetWorld()) return;
+	if (!GetWorld())
+	{
+		return;
+	}
 
 	// 2. StateTreeAIComponent 클래스 동적 로드
 	UClass* TargetClass = StaticLoadClass(UActorComponent::StaticClass(), nullptr, TEXT("/Script/GameplayStateTreeModule.StateTreeAIComponent"));
@@ -339,7 +342,10 @@ void ABossAIController::TriggerPhaseTransition()
 
 	// 4. 컴포넌트의 클래스 정보가 안전한지 한 번 더 확인
 	UClass* ComponentClass = FoundComponent->GetClass();
-	if (!ComponentClass) return;
+	if (!ComponentClass)
+	{
+		return;
+	}
 
 	// 5. "SendStateTreeEvent" 함수가 실제로 존재하는지 확인
 	UFunction* SendEventFunc = ComponentClass->FindFunctionByName(TEXT("SendStateTreeEvent"));

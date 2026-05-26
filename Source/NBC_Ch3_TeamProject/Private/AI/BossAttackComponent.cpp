@@ -1,4 +1,5 @@
 #include "AI/BossAttackComponent.h"
+#include "Combat/HealthComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/OverlapResult.h"
@@ -12,6 +13,7 @@ UBossAttackComponent::UBossAttackComponent()
 	TargetSocketName = NAME_None;
 	TraceRadius = 50.f;
 	LastSocketLocation = FVector::ZeroVector;
+	AttackDamage = 30.f;
 }
 
 void UBossAttackComponent::BeginPlay()
@@ -86,6 +88,14 @@ void UBossAttackComponent::ExecuteRadialSlam(FVector CenterLocation, float Radiu
 			AActor* HitActor = Overlap.GetActor();
 			if (HitActor)
 			{
+				if (UHealthComponent* Health = HitActor->FindComponentByClass<UHealthComponent>())
+				{
+					if (!Health->IsDead())
+					{
+						Health->ApplyDamage(DamageAmount);
+					}
+				}
+
 				UGameplayStatics::ApplyDamage(
 					HitActor,
 					DamageAmount,
@@ -155,10 +165,18 @@ void UBossAttackComponent::ExecuteMeleeTrace()
 				// 중복 타격 리스트에 추가
 				AlreadyHitActors.Add(HitActor);
 
+				if (UHealthComponent* Health = HitActor->FindComponentByClass<UHealthComponent>())
+				{
+					if (!Health->IsDead())
+					{
+						Health->ApplyDamage(AttackDamage);
+					}
+				}
+
 				// 플레이어의 TakeDamage / HealthComponent에게 전달
 				UGameplayStatics::ApplyDamage(
 					HitActor,
-					50.f, // 대미지 값 
+					AttackDamage, // 대미지 값 
 					BossCharacter->GetController(),
 					BossCharacter,
 					UDamageType::StaticClass()
