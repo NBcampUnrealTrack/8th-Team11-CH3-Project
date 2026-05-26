@@ -304,9 +304,31 @@ void ANBC_GameMode::QuitGame()
 
 void ANBC_GameMode::RequestRestartGame()
 {
-	FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
+	// 게임 정지 해제
+	UGameplayStatics::SetGamePaused(GetWorld(), false);
+
+	// 입력 모드 및 마우스 커서 리셋 
+	APlayerController* PC = GetWorld()->GetFirstPlayerController();
+	if (PC)
+	{
+		PC->bShowMouseCursor = false;
+
+		FInputModeGameOnly InputMode;
+		PC->SetInputMode(InputMode);
+	}
+
+	// 진행상황 초기화
+	UNBC_GameInstance* GI = Cast<UNBC_GameInstance>(GetWorld()->GetGameInstance());
+	if (GI)
+	{
+		GI->ClearSavedData();
+		GI->ResetProgression();
+	}
+
+	//FString CurrentLevelName = UGameplayStatics::GetCurrentLevelName(GetWorld());
 
 	UE_LOG(LogTemp, Warning, TEXT("Restart Level"));
 
-	UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentLevelName));
+	//UGameplayStatics::OpenLevel(GetWorld(), FName(*CurrentLevelName));
+	UGameplayStatics::OpenLevel(GetWorld(), FName("StartLevel"));
 }
