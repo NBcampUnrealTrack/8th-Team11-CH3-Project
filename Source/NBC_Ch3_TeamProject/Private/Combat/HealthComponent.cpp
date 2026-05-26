@@ -47,6 +47,7 @@ void UHealthComponent::IncreaseMaxHealth(float Amount)
 
 	MaxHealth *= Amount;
 	CurrentHealth = FMath::Clamp(CurrentHealth * Amount, 0.0f, MaxHealth);
+	OnMaxHealthChanged.Broadcast(MaxHealth); 
 	OnHealthChanged.Broadcast(CurrentHealth);
 }
 
