@@ -8,6 +8,7 @@
 #include "NBC_Ch3_TeamProject/Public/Combat/WeaponConfig.h"
 #include "NBC_Ch3_TeamProject/Public/UI/CardSlotWidget.h"
 #include "Kismet/KismetArrayLibrary.h"
+#include "Player/PlayerCharacter.h"
 
 void UCardSelectionWidget::NativeConstruct()
 {
@@ -71,7 +72,21 @@ void UCardSelectionWidget::HandleCardSelected(UBaseDataAsset* SelectedData)
 	// 카드 데이터인 경우
 	if (UCardDataAsset* CardData = Cast<UCardDataAsset>(SelectedData))
 	{
+		APlayerCharacter* Player = Cast<APlayerCharacter>(PC->GetPawn());
+		if (!Player) return;
 
+		UHealthComponent* HealthComp = Player->FindComponentByClass<UHealthComponent>();
+
+		if (HealthComp)
+		{
+			HealthComp->IncreaseMaxHealth(CardData->MaxHPModifier);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("CardWidget: Can'f find HealthComponent from Player"));
+		}
+
+		Player->IncreaseMovementSpeed(CardData->MoveSpeed);
 	}
 
 	// 무기 데이터인 경우
