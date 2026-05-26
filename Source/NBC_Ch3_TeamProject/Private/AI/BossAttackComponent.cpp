@@ -1,6 +1,7 @@
 #include "AI/BossAttackComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/OverlapResult.h"
 
 
 UBossAttackComponent::UBossAttackComponent()
@@ -43,6 +44,58 @@ void UBossAttackComponent::EndMeleeTrace()
 {
 	bIsAttacking = false;
 	AlreadyHitActors.Empty();
+}
+
+void UBossAttackComponent::ExecuteRadialSlam(FVector CenterLocation, float Radius, float DamageAmount)
+{
+	if (!BossCharacter)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	TArray<FOverlapResult> OverlapResults;
+	FCollisionShape SphereShape = FCollisionShape::MakeSphere(Radius);
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(BossCharacter);
+	FCollisionObjectQueryParams ObjectParams;
+	ObjectParams.AddObjectTypesToQuery(ECC_Pawn);
+
+	// 단발성 구체 오버랩 검출
+	bool bOverlap = World->OverlapMultiByObjectType(
+		OverlapResults,
+		CenterLocation,
+		FQuat::Identity,
+		ObjectParams,
+		SphereShape,
+		QueryParams
+	);
+
+	// 디버그용 구체
+	DrawDebugSphere(World, CenterLocation, Radius, 32, FColor::Orange, false, 2.0f, 0, 1.5f);
+
+	if (bOverlap)
+	{
+		for (const FOverlapResult& Overlap : OverlapResults)
+		{
+			AActor* HitActor = Overlap.GetActor();
+			if (HitActor)
+			{
+				UGameplayStatics::ApplyDamage(
+					HitActor,
+					DamageAmount,
+					BossCharacter->GetController(),
+					BossCharacter,
+					UDamageType::StaticClass()
+				);
+			}
+		}
+	}
 }
 
 // NotifyState에서 매 프레임 호출

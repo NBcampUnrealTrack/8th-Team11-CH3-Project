@@ -11,25 +11,29 @@ class NBC_CH3_TEAMPROJECT_API UBossAttackComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+
 	UBossAttackComponent();
 
-protected:
-	virtual void BeginPlay() override;
-
-public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	// 공격 시작 (ANS_Begin에서 호출)
 	UFUNCTION(BlueprintCallable, Category = "Boss | Attack")
 	void StartMeleeTrace(FName InSocketName, float InRadius);
 
-	// 공격 추적 연산을 수행
+	// 공격 추적 연산을 수행 (ANS_Tick에서 호출)
 	UFUNCTION(BlueprintCallable, Category = "Boss | Attack")
 	void ExecuteMeleeTrace();
 
 	// 공격 종료 (ANS_End에서 호출)
 	UFUNCTION(BlueprintCallable, Category = "Boss | Attack")
 	void EndMeleeTrace();
+
+	// 광역 공격 함수
+	UFUNCTION(BlueprintCallable, Category = "Boss | Attack")
+	void ExecuteRadialSlam(FVector CenterLocation, float Radius, float DamageAmount);
+
+protected:
+	virtual void BeginPlay() override;
 
 private:
 
