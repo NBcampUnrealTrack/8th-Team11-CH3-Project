@@ -171,10 +171,11 @@ public:
 	UFUNCTION()
 	void OnPlayerHealthChanged(float NewHealth);
 
+	// [창욱 수정] private에서 public으로 이동 
+	UFUNCTION(BlueprintCallable, Category = "Reward")
+	void IncreaseMovementSpeed(float Amount);
+
 private:
 	// [장식 추가] 직전 체력 — 감소(피격)와 회복을 구분하기 위함
 	float LastKnownHealth = 0.f;
-	
-	UFUNCTION(BlueprintCallable, Category = "Reward")
-	void IncreaseMovementSpeed(float Amount);
 };
