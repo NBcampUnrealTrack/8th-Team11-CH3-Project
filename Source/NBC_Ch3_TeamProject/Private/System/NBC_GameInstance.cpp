@@ -22,6 +22,7 @@ void UNBC_GameInstance::ClearSavedData()
 
 void UNBC_GameInstance::ResetProgression()
 {
+	SetSavedTotalScore(0);
 	NormalLevelsCleared = 0;
 	bIsInRewardLevel = false;
 }
