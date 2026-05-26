@@ -10,6 +10,8 @@
 #include "NBC_Ch3_TeamProject/Public/System/NBC_GameState.h"
 #include "Player/WeaponRewardComponent.h"
 #include "Player/PlayerCharacter.h"
+#include "Combat/HealthComponent.h"
+#include "GameFrameWork/CharacterMovementComponent.h"
 
 // Sets default values
 APortal::APortal()
@@ -45,8 +47,10 @@ void APortal::OnPortalOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other
 		}
 
 		// [장식 복원] 무기 세이브
+		// [창욱 추가] 스탯 저장 
 		if (APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor))
 		{
+			// 무기 저장
 			UWeaponRewardComponent* RewardComp = Player->FindComponentByClass<UWeaponRewardComponent>();
 			if (RewardComp)
 			{
@@ -55,6 +59,23 @@ void APortal::OnPortalOverlap(UPrimitiveComponent* OverlappedComp, AActor* Other
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("PORTAL: Can't Find UWeaponRewardComponent"));
+			}
+
+			if (GI)
+			{
+				// 체력 저장
+				UHealthComponent* HealthComp = Player->FindComponentByClass<UHealthComponent>();
+				if (HealthComp)
+				{
+					GI->SetSavedCurrentHP(HealthComp->GetCurrentHealth());
+					GI->SetSavedMaxHP(HealthComp->GetMaxHealth());
+				}
+
+				// 이동 속도 저장
+				if (Player->GetCharacterMovement())
+				{
+					GI->SetSavedMoveSpeed(Player->GetCharacterMovement()->MaxWalkSpeed);
+				}
 			}
 
 		}

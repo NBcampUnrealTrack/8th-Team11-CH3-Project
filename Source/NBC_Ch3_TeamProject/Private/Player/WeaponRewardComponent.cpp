@@ -199,8 +199,12 @@ void UWeaponRewardComponent::SaveWeaponsToInstance()
 	for (ABaseWeapon* WeaponActor : Player->WeaponInventory)
 	{
 		if (WeaponActor)
-		{
-			TempClasses.Add(WeaponActor->GetClass());
+		{	
+			TSubclassOf<ABaseWeapon> WeaponClass = WeaponActor->GetClass();
+			TempClasses.Add(WeaponClass);
+
+			GI->SetSavedFireRate(WeaponClass, WeaponActor->FireRate);
+			GI->SetSavedMaxBullets(WeaponClass, WeaponActor->MaxBulletCount);
 		}
 	}
 
@@ -226,6 +230,21 @@ void UWeaponRewardComponent::LoadWeaponsFromInstance()
 	{
 		if (!WeaponClass) continue;
 		Player->AddWeaponToInventory(WeaponClass);
+
+		if (!Player->WeaponInventory.IsEmpty())
+		{
+			ABaseWeapon* SpawnedWeapon = Player->WeaponInventory.Last();
+			if (SpawnedWeapon)
+			{
+				float SavedFireRate = GI->GetSavedFireRate(WeaponClass);
+				int32 SavedMaxBullets = GI->GetSavedMaxBullets(WeaponClass);
+
+				if (SavedFireRate > 0.0f) SpawnedWeapon->FireRate = SavedFireRate;
+				if (SavedMaxBullets > 0.0f) SpawnedWeapon->MaxBulletCount = SavedMaxBullets;
+
+				SpawnedWeapon->CurrentBulletCount = SpawnedWeapon->MaxBulletCount;
+			}
+		}
 	}
 
 	int32 TargetIndex = GI->GetSavedCurrentWeaponIndex();

@@ -6,6 +6,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "AI/WaveSpawnManager.h"
 #include "Blueprint/UserWidget.h"
+#include "System/NBC_GameInstance.h"
+#include "Combat/HealthComponent.h"
+#include "Player/PlayerCharacter.h"
+#include "GameFrameWork/CharacterMovementComponent.h"
 
 ANBC_GameMode::ANBC_GameMode()
 {
@@ -41,9 +45,42 @@ void ANBC_GameMode::PostLogin(APlayerController* NewPlayer)
 void ANBC_GameMode::InitializeLoadedGame(APlayerController* TargetPlayer)
 {
 	if (TargetPlayer && TargetPlayer->GetPawn())
-	{
-		UWeaponRewardComponent* RewardComp = TargetPlayer->GetPawn()->FindComponentByClass<UWeaponRewardComponent>();
+	{	
+		APlayerCharacter* Player = Cast<APlayerCharacter>(TargetPlayer->GetPawn());
+		UNBC_GameInstance* GI = Cast<UNBC_GameInstance>(GetWorld()->GetGameInstance());
 
+		// 스탯 복구
+		if (Player && GI)
+		{
+			// 체력 복구
+			if (GI->GetSavedMaxHP() > 0.0f)
+			{
+				UHealthComponent* HealthComp = Player->FindComponentByClass<UHealthComponent>();
+				if (HealthComp)
+				{
+					HealthComp->SetMaxHealth(GI->GetSavedMaxHP());
+					HealthComp->SetCurrentHealth(GI->GetSavedCurrentHP());
+
+					Player->SetLastKnownHealth(GI->GetSavedCurrentHP());
+
+					HealthComp->OnHealthChanged.Broadcast(HealthComp->GetCurrentHealth());
+				}
+			}
+
+			if (GI->GetSavedMoveSpeed() > 0.0f)
+			{
+				if (Player->GetCharacterMovement())
+				{
+					Player->GetCharacterMovement()->MaxWalkSpeed = GI->GetSavedMoveSpeed();
+					Player->GetCharacterMovement()->MaxWalkSpeedCrouched = GI->GetSavedMoveSpeed() * 0.5f;
+
+					Player->SprintSpeed = GI->GetSavedMoveSpeed() * Player->SprintMultiplier;
+				}
+			}
+		}
+
+		// 무기 로드
+		UWeaponRewardComponent* RewardComp = TargetPlayer->GetPawn()->FindComponentByClass<UWeaponRewardComponent>();
 		if (RewardComp)
 		{
 			RewardComp->LoadWeaponsFromInstance();

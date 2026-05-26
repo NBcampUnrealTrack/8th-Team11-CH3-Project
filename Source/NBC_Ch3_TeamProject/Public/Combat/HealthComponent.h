@@ -38,6 +38,13 @@ public:
 	UFUNCTION(BlueprintPure, Category="Health")
 	float GetMaxHealth() const { return MaxHealth; }
 
+	// [창욱 추가] 체력 setter
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void SetCurrentHealth(float Health) { CurrentHealth = Health; }
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void SetMaxHealth(float Health) { MaxHealth = Health; }
+
 	UFUNCTION(BlueprintPure, Category="Health")
 	bool IsDead() const { return CurrentHealth <= 0.0f; }
 

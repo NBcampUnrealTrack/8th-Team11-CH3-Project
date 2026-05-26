@@ -642,6 +642,7 @@ void APlayerCharacter::OnPlayerDeath()
 	}
 }
 
+// [창욱 수정] 합연산을 곱연산으로 수정 
 void APlayerCharacter::IncreaseMovementSpeed(float Amount)
 {
 	if (Amount <= 0.0f) return;
@@ -649,7 +650,7 @@ void APlayerCharacter::IncreaseMovementSpeed(float Amount)
 	UCharacterMovementComponent* Movement = GetCharacterMovement();
 	if (!Movement) return;
 
-	Movement->MaxWalkSpeed += Amount;
+	Movement->MaxWalkSpeed *= Amount;
 	Movement->MaxWalkSpeedCrouched += Amount * 0.5f; // 앉기 속도도 같이 증가
 }
 
