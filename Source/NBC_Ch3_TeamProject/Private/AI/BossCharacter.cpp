@@ -46,7 +46,7 @@ ABossCharacter::ABossCharacter()
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (MoveComp)
 	{
-		MoveComp->MaxWalkSpeed = 500.f;
+		MoveComp->MaxWalkSpeed = 1000.f;
 
 		// 회전 속도 (Yaw) 조절 - 뚝뚝 끊기는 현상 방지
 		MoveComp->RotationRate = FRotator(0.0f, 180.0f, 0.0f); // 수치가 낮을수록 회전이 부드러워짐
@@ -88,7 +88,7 @@ void ABossCharacter::Tick(float DeltaTime)
 	else if (BossCurrentHealth <= 0.7f * BossMaxHealth && BossCurrentHealth > 0.3f * BossMaxHealth && CurrentPhase == 1)
 	{
 		CurrentPhase = 2;
-		GetCharacterMovement()->MaxWalkSpeed = 500.f;
+		GetCharacterMovement()->MaxWalkSpeed = 1200.f;
 		BossPhase = EBossPhase::Phase2;
 		UE_LOG(LogTemp, Warning, TEXT("Phase: %s"), *UEnum::GetValueAsString(BossPhase));
 		if (BossAI)
@@ -99,7 +99,7 @@ void ABossCharacter::Tick(float DeltaTime)
 	else if (BossCurrentHealth <= 0.3f * BossMaxHealth && CurrentPhase == 2)
 	{
 		CurrentPhase = 3;
-		GetCharacterMovement()->MaxWalkSpeed = 900.f;
+		GetCharacterMovement()->MaxWalkSpeed = 1400.f;
 		BossPhase = EBossPhase::Phase3;
 		UE_LOG(LogTemp, Warning, TEXT("Phase: %s"), *UEnum::GetValueAsString(BossPhase));
 		if (BossAI)
