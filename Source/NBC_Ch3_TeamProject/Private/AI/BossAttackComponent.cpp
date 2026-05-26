@@ -79,7 +79,7 @@ void UBossAttackComponent::ExecuteRadialSlam(FVector CenterLocation, float Radiu
 	);
 
 	// 디버그용 구체
-	DrawDebugSphere(World, CenterLocation, Radius, 32, FColor::Orange, false, 2.0f, 0, 1.5f);
+	//DrawDebugSphere(World, CenterLocation, Radius, 32, FColor::Orange, false, 2.0f, 0, 1.5f);
 
 	if (bOverlap)
 	{
@@ -153,7 +153,7 @@ void UBossAttackComponent::ExecuteMeleeTrace()
 	);
 
 	// 디버그 라인
-	 DrawDebugSphere(World, CurrentSocketLocation, TraceRadius, 8, FColor::Red, false, 1.0f);
+	 //DrawDebugSphere(World, CurrentSocketLocation, TraceRadius, 8, FColor::Red, false, 1.0f);
 
 	if (bHit)
 	{
