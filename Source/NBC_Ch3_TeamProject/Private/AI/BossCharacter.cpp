@@ -6,6 +6,7 @@
 #include "Combat/HitReactComponent.h"
 #include "Combat/CombatTypes.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -161,4 +162,21 @@ void ABossCharacter::OnDeath()
 
 	// 몽타주 재생시간을 주기 위해 3초 후 Destroy() 실행
 	SetLifeSpan(3.0f);
+
+	if (GetWorld())
+	{
+		ANBC_GameMode* GM = Cast<ANBC_GameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		GM->OnMonsterKilled();
+		if (GM)
+		{
+			FTimerHandle ClearTimerHandle;
+			GetWorldTimerManager().SetTimer(
+				ClearTimerHandle,
+				GM,
+				&ANBC_GameMode::OnClearGame,
+				3.5f,
+				false
+			);
+		}
+	}
 }

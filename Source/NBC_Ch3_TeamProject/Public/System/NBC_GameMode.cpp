@@ -292,6 +292,11 @@ void ANBC_GameMode::OnPlayerDied()
 	ChangePhase(EGamePhase::GameOver);
 }
 
+void ANBC_GameMode::OnClearGame()
+{
+	ChangePhase(EGamePhase::GameClear);
+}
+
 void ANBC_GameMode::QuitGame()
 {
 	APlayerController* PC = GetWorld()->GetFirstPlayerController();

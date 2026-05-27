@@ -26,6 +26,8 @@ public:
 	// 플레이어가 죽었을 떄 호출 
 	void OnPlayerDied();
 
+	void OnClearGame();
+
 	UPROPERTY(BlueprintAssignable, Category = "Game Flow | UI")
 	FOnKillCountChangedDelegate OnKillCountChanged;
 
