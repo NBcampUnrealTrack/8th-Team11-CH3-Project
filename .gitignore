@@ -9,6 +9,10 @@
 *.VC.opendb
 .vs/
 
+# JetBrains Rider / IntelliJ (개인별 IDE 설정·캐시)
+.idea/
+*.DotSettings.user
+
 # Compiled binaries
 Binaries/
 Plugins/*/Binaries/
@@ -33,3 +37,6 @@ Saved/
 
 # StarterContent (용량 크고 팀 작업 불필요)
 Content/StarterContent/
+
+# Fab 마켓플레이스 에셋 전체 (개인 라이선스, 팀 공유 불가 — 각자 로컬 다운로드)
+Content/_Fab/

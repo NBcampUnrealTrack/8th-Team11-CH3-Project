@@ -7,7 +7,12 @@
 		{
 			"Name": "NBC_Ch3_TeamProject",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"AIModule",
+				"UMG"
+			]
 		}
 	],
 	"Plugins": [
@@ -17,6 +22,24 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "Figma2UMG",
+			"Enabled": true,
+			"Optional": true,
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/d1c6a5ba1f814d4b939c06a1c67a0dc2"
+		},
+		{
+			"Name": "GameplayStateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "MotionWarping",
+			"Enabled": true
+		},
+		{
+			"Name": "EngineCameras",
+			"Enabled": true
 		}
 	]
 }
