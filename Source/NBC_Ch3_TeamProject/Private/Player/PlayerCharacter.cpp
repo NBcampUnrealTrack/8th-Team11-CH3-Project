@@ -153,6 +153,7 @@ if (bIsFiring && WeaponComponent)
                 }
                 CurWeapon->CurrentBulletCount = FMath::Max(
                     CurWeapon->CurrentBulletCount - 1, 0);
+            	OnAmmoChanged.Broadcast(CurWeapon->CurrentBulletCount, CurWeapon->MaxBulletCount); // ← 추가
             }
         }
     }
@@ -464,7 +465,11 @@ void APlayerCharacter::FinishReload()
 {
 	if (!WeaponInventory.IsValidIndex(CurrentWeaponIndex)) return;
 	ABaseWeapon* CurWeapon = WeaponInventory[CurrentWeaponIndex];
-	if (CurWeapon) CurWeapon->Reload();
+	if (CurWeapon)
+	{
+		CurWeapon->Reload();
+		OnAmmoChanged.Broadcast(CurWeapon->CurrentBulletCount, CurWeapon->MaxBulletCount);
+	}
 	bIsReloading = false;
 }
 
