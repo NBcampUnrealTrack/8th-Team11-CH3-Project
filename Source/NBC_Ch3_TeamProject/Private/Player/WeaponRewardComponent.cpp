@@ -136,52 +136,46 @@ FText UWeaponRewardComponent::GetChoiceDisplayName(int32 ChoiceIndex) const
 
 void UWeaponRewardComponent::ApplyWeaponConfigReward(UWeaponConfig* Config)
 {
-	if (!Config) return;
+    if (!Config) return;
 
-	APlayerCharacter* Player = GetOwnerPlayer();
-	if (!Player) return;
+    APlayerCharacter* Player = GetOwnerPlayer();
+    if (!Player) return;
 
-	// 무기가 없으면 풀에서 매칭되는 무기 획득 
-	if (Player->WeaponInventory.IsEmpty())
-	{
-		TSubclassOf<ABaseWeapon> WeaponToGive = nullptr;
+    // RewardWeaponPool에서 Config와 일치하는 무기 클래스 찾기
+    TSubclassOf<ABaseWeapon> MatchingClass = nullptr;
+    for (TSubclassOf<ABaseWeapon> WeaponClass : RewardWeaponPool)
+    {
+        if (!WeaponClass) continue;
+        const ABaseWeapon* Default = WeaponClass->GetDefaultObject<ABaseWeapon>();
+        if (Default && Default->WeaponConfig
+            && Default->WeaponConfig->WeaponClass == Config->WeaponClass)
+        {
+            MatchingClass = WeaponClass;
+            break;
+        }
+    }
 
-		// RewardWeaponPool에서 Config의 WeaponClass(Rifle/Shotgun/Pistol)와 일치하는 무기 탐색
-		for (TSubclassOf<ABaseWeapon> WeaponClass : RewardWeaponPool)
-		{
-			if (!WeaponClass) continue;
+    if (!MatchingClass) return;
 
-			const ABaseWeapon* DefaultWeapon = WeaponClass->GetDefaultObject<ABaseWeapon>();
-			if (DefaultWeapon && DefaultWeapon->WeaponConfig
-				&& DefaultWeapon->WeaponConfig->WeaponClass == Config->WeaponClass)
-			{
-				WeaponToGive = WeaponClass;
-				break;
-			}
-		}
+    // 이미 이 종류의 무기를 가지고 있으면 → 업그레이드
+    ABaseWeapon* ExistingWeapon = FindOwnedWeaponByClass(MatchingClass);
+    if (ExistingWeapon)
+    {
+        ApplyUpgradeToWeapon(ExistingWeapon);
+        OnRewardApplied.Broadcast(ExistingWeapon, true);
+        return;
+    }
 
-		if (!WeaponToGive) return; // 매칭 무기 없음
+    // 없으면 → 새 무기 추가 + 교체
+    const int32 NewIndex = Player->WeaponInventory.Num();
+    if (Player->AddWeaponToInventory(MatchingClass))
+    {
+        ABaseWeapon* NewWeapon = Player->WeaponInventory.IsValidIndex(NewIndex)
+            ? Player->WeaponInventory[NewIndex] : nullptr;
 
-		const int32 NewIndex = Player->WeaponInventory.Num();
-		if (Player->AddWeaponToInventory(WeaponToGive))
-		{
-			ABaseWeapon* NewWeapon = Player->WeaponInventory.IsValidIndex(NewIndex)
-				? Player->WeaponInventory[NewIndex] : nullptr;
-
-			Player->SwitchWeapon(NewIndex);
-			OnRewardApplied.Broadcast(NewWeapon, false);
-		}
-		return;
-	}
-
-	// 무기가 있으면 현재 무기 업그레이드
-	if (!Player->WeaponInventory.IsValidIndex(Player->CurrentWeaponIndex)) return;
-
-	ABaseWeapon* CurrentWeapon = Player->WeaponInventory[Player->CurrentWeaponIndex];
-	if (!CurrentWeapon) return;
-
-	ApplyUpgradeToWeapon(CurrentWeapon);
-	OnRewardApplied.Broadcast(CurrentWeapon, true);
+        Player->SwitchWeapon(NewIndex);
+        OnRewardApplied.Broadcast(NewWeapon, false);
+    }
 }
 
 // GameInstance에 무기 저장 

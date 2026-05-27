@@ -15,6 +15,9 @@ class UCameraShakeBase;
 
 struct FInputActionValue;
 
+// 탄약 변경 이벤트 — HUD가 구독
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoChanged, int32, Current, int32, Max);
+
 UCLASS()
 class NBC_CH3_TEAMPROJECT_API APlayerCharacter : public ACharacter
 {
@@ -107,7 +110,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
 	UAnimMontage* CrouchReload;
 	
-
+	UPROPERTY(BlueprintAssignable, Category = "Weapon")
+	FOnAmmoChanged OnAmmoChanged;
+	
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
